@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -10,6 +9,25 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Building, Send, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+type UserRole = "partner" | "vendor";
+
+interface User {
+  id: string;
+  role: UserRole;
+  name: string;
+}
+
+interface Message {
+  id: string;
+  author_id: string;
+  author_name: string;
+  author_role: UserRole;
+  body: string;
+  created_at: string;
+  seen_by_vendor: boolean;
+  seen_by_partner: boolean;
+}
+
 const Chat = () => {
   const { threadId } = useParams();
   const navigate = useNavigate();
@@ -17,12 +35,12 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       author_id: "partner-1",
       author_name: "John Smith",
-      author_role: "partner" as const,
+      author_role: "partner",
       body: "Hi! I'm interested in your CloudCRM Pro solution. Could you tell me more about the white-label partnership terms?",
       created_at: "2024-01-15T10:30:00Z",
       seen_by_vendor: true,
@@ -32,7 +50,7 @@ const Chat = () => {
       id: "2",
       author_id: "vendor-1",
       author_name: "Sarah Johnson",
-      author_role: "vendor" as const,
+      author_role: "vendor",
       body: "Hello John! Thanks for your interest. Our white-label program offers 30% margins with full branding customization. We provide dedicated support and API access. Would you like to schedule a demo?",
       created_at: "2024-01-15T11:15:00Z",
       seen_by_vendor: true,
@@ -41,9 +59,9 @@ const Chat = () => {
   ]);
 
   // Mock current user - TODO: Replace with actual auth
-  const currentUser = {
+  const currentUser: User = {
     id: "partner-1",
-    role: "partner" as const,
+    role: "partner",
     name: "John Smith"
   };
 
@@ -79,7 +97,7 @@ const Chat = () => {
     if (!message.trim()) return;
 
     // TODO: Implement with Supabase
-    const newMessage = {
+    const newMessage: Message = {
       id: Date.now().toString(),
       author_id: currentUser.id,
       author_name: currentUser.name,
