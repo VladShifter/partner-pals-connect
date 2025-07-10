@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
@@ -16,7 +15,7 @@ const Marketplace = () => {
   const [selectedSubtypes, setSelectedSubtypes] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  // Mock data - TODO: Replace with Supabase data
+  // Mock data with images - TODO: Replace with Supabase data
   const products = [
     {
       id: "1",
@@ -26,6 +25,7 @@ const Marketplace = () => {
       pitch: "All-in-one CRM solution for growing businesses with advanced automation and analytics.",
       tags: ["CRM", "SaaS", "Automation", "Analytics"],
       slug: "cloudcrm-pro",
+      image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=240&fit=crop&crop=center",
       partner_terms: {
         white_label: { margin_pct: 30, notes: "Full white-label available" },
         reseller: { margin_pct: 25, notes: "Volume discounts available" },
@@ -40,6 +40,7 @@ const Marketplace = () => {
       pitch: "Complete e-commerce optimization platform with AI-powered recommendations and conversion tools.",
       tags: ["E-commerce", "AI", "Optimization", "Conversion"],
       slug: "ecomboost-suite",
+      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=240&fit=crop&crop=center",
       partner_terms: {
         reseller: { margin_pct: 20, notes: "Training provided" },
         affiliate: { margin_pct: 12, notes: "High converting offers" },
@@ -54,6 +55,7 @@ const Marketplace = () => {
       pitch: "Enterprise-grade VPN solution with advanced threat protection and zero-trust architecture.",
       tags: ["VPN", "Security", "Enterprise", "Zero-Trust"],
       slug: "secureflow-vpn",
+      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=240&fit=crop&crop=center",
       partner_terms: {
         white_label: { margin_pct: 40, notes: "Custom branding included" },
         reseller: { margin_pct: 30, notes: "Technical support included" },
