@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -19,16 +21,18 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // TODO: Implement Supabase auth
-    console.log("Login attempt with email:", email);
+    // TODO: Implement Supabase auth with email/password
+    console.log("Login attempt:", { email, password });
     
     // Simulate API call
     setTimeout(() => {
       toast({
-        title: "Magic link sent!",
-        description: "Check your email for a login link.",
+        title: "Logged in successfully!",
+        description: "Welcome back to Rezollo.",
       });
       setIsLoading(false);
+      // TODO: Navigate based on user role
+      navigate("/dashboard/vendor");
     }, 1000);
   };
 
@@ -42,7 +46,7 @@ const Login = () => {
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
               <CardDescription>
-                Enter your email to receive a magic link
+                Sign in to your Rezollo account
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -58,14 +62,41 @@ const Login = () => {
                     required
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
-                    "Sending magic link..."
+                    "Signing in..."
                   ) : (
                     <>
                       <Mail className="w-4 h-4 mr-2" />
-                      Send Magic Link
+                      Sign In
                     </>
                   )}
                 </Button>
