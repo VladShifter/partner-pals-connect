@@ -286,12 +286,12 @@ const ProductDetail = () => {
 
                         <div className="bg-primary/10 rounded-lg p-4">
                           <div className="text-center">
-                            <div className="text-sm text-muted-foreground mb-1">Estimated Monthly Earnings</div>
+                            <div className="text-sm text-muted-foreground mb-1">Estimated Annual Earnings</div>
                             <div className="text-2xl font-bold text-primary">
-                              ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct)) / 100).toLocaleString()}
+                              ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct) * 12) / 100).toLocaleString()}
                             </div>
                             <div className="text-sm text-muted-foreground mt-1">
-                              Annual: ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct) * 12) / 100).toLocaleString()}
+                              Monthly: ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct)) / 100).toLocaleString()}
                             </div>
                           </div>
                         </div>
@@ -403,8 +403,8 @@ const ProductDetail = () => {
 
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Fixed Sidebar */}
+          <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
             {/* Vendor Info */}
             <Card>
               <CardHeader>
@@ -445,81 +445,70 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="w-full">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Apply
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Apply for Partnership</DialogTitle>
-                      <DialogDescription>
-                        Fill out this form to apply for a partnership with {product.vendor}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form className="space-y-4">
-                      <div>
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" placeholder="Enter your full name" />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="Enter your email" />
-                      </div>
-                      <div>
-                        <Label htmlFor="company">Company</Label>
-                        <Input id="company" placeholder="Enter your company name" />
-                      </div>
-                      <div>
-                        <Label htmlFor="experience">Experience</Label>
-                        <Textarea 
-                          id="experience" 
-                          placeholder="Tell us about your experience in sales/partnerships..."
-                          rows={3}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="partnership-type">Preferred Partnership Type</Label>
-                        <select className="w-full p-2 border rounded-md">
-                          <option value="">Select partnership type</option>
-                          <option value="reseller">Reseller</option>
-                          <option value="affiliate">Affiliate</option>
-                          <option value="white_label">White Label</option>
-                        </select>
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Submit Application
+                <div className="space-y-3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Apply
                       </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Apply for Partnership</DialogTitle>
+                        <DialogDescription>
+                          Fill out this form to apply for a partnership with {product.vendor}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input id="name" placeholder="Enter your full name" />
+                        </div>
+                        <div>
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" type="email" placeholder="Enter your email" />
+                        </div>
+                        <div>
+                          <Label htmlFor="company">Company</Label>
+                          <Input id="company" placeholder="Enter your company name" />
+                        </div>
+                        <div>
+                          <Label htmlFor="experience">Experience</Label>
+                          <Textarea 
+                            id="experience" 
+                            placeholder="Tell us about your experience in sales/partnerships..."
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="partnership-type">Preferred Partnership Type</Label>
+                          <select className="w-full p-2 border rounded-md">
+                            <option value="">Select partnership type</option>
+                            <option value="reseller">Reseller</option>
+                            <option value="affiliate">Affiliate</option>
+                            <option value="white_label">White Label</option>
+                          </select>
+                        </div>
+                        <Button type="submit" className="w-full">
+                          Submit Application
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Button 
+                    onClick={handleStartChat} 
+                    variant="outline" 
+                    className="w-full bg-primary/5 border-primary/30 hover:bg-primary/10"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Start Chat
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button onClick={handleStartChat} className="w-full">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Start Chat
-                </Button>
-                
-                <Button variant="outline" className="w-full">
-                  <Users className="w-4 h-4 mr-2" />
-                  Save for Later
-                </Button>
-                
-                <Button variant="outline" className="w-full">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Request Info
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
