@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Building, Zap, Globe, TrendingUp } from "lucide-react";
+import { Search, Users, Building, Zap, Globe, TrendingUp, Settings } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -182,8 +182,14 @@ const Index = () => {
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Rezollo. All rights reserved.</p>
+          <div className="border-t border-gray-800 mt-8 pt-8 flex justify-between items-center">
+            <p className="text-gray-400">&copy; 2024 Rezollo. All rights reserved.</p>
+            <Link to="/admin/login">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
           </div>
         </div>
       </footer>
