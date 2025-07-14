@@ -16,6 +16,14 @@ import VendorDashboard from "./pages/VendorDashboard";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import { AdminGuard } from "./components/admin/AdminGuard";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminVendors from "./pages/admin/AdminVendors";
+import AdminPartners from "./pages/admin/AdminPartners";
+import AdminApplications from "./pages/admin/AdminApplications";
+import AdminTags from "./pages/admin/AdminTags";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +45,21 @@ const App = () => (
           <Route path="/dashboard/vendor" element={<VendorDashboard />} />
           <Route path="/dashboard/partner" element={<PartnerDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          
+          {/* Admin routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={
+            <AdminGuard>
+              <AdminLayout />
+            </AdminGuard>
+          }>
+            <Route path="overview" element={<AdminOverview />} />
+            <Route path="vendors" element={<AdminVendors />} />
+            <Route path="partners" element={<AdminPartners />} />
+            <Route path="applications" element={<AdminApplications />} />
+            <Route path="tags" element={<AdminTags />} />
+          </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

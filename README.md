@@ -1,73 +1,98 @@
-# Welcome to your Lovable project
+# Rezollo Marketplace
 
-## Project info
+A modern marketplace platform connecting vendors and partners built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/a3a0018b-0866-42f8-b788-0df492afa6fa
+## Features
 
-## How can I edit this code?
+- **Marketplace**: Browse and discover products from various vendors
+- **Vendor Dashboard**: Manage products, view analytics, and track partnerships  
+- **Partner Dashboard**: Find partnership opportunities and manage applications
+- **Admin Console**: Private staff console for platform management
+- **Real-time Updates**: Live notifications and data synchronization
+- **Authentication**: Secure login with magic links
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **UI Components**: Shadcn/ui with Radix UI primitives
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Routing**: React Router v6
+- **State Management**: TanStack Query
+- **Forms**: React Hook Form with Zod validation
+- **Build Tool**: Vite
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a3a0018b-0866-42f8-b788-0df492afa6fa) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Use your preferred IDE**
+2. **Start development server**
+   ```bash
+   npm run dev
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. **Open your browser**
+   Navigate to `http://localhost:5173`
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Admin Console Setup
 
-Follow these steps:
+The admin console is a private interface for Rezollo staff to manage the platform.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Creating Your First Admin
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Sign up as a regular user** through the main app at `/signup`
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Promote to admin role** via Supabase dashboard:
+   - Go to your Supabase project dashboard
+   - Navigate to **Table Editor** → **profiles**
+   - Find your user record and edit the `role` field
+   - Change from `user` to `admin`
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3. **Access admin console** at `/admin/login`
+   - Use the same email you signed up with
+   - Click "Send Magic Link" 
+   - Check your email and click the login link
+   - You'll be redirected to `/admin/overview`
 
-**Edit a file directly in GitHub**
+### Admin Console Features
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Overview**: Dashboard with pending items count
+- **Vendors**: Approve/reject vendor profiles, inline editing
+- **Partners**: Manage partner accounts and subtypes  
+- **Applications**: Review partnership requests with bulk actions
+- **Tags**: Create and manage global tags with color coding
 
-**Use GitHub Codespaces**
+### Admin Permissions
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Admins can bypass all Row Level Security policies
+- Only users with `role = 'admin'` can access admin routes
+- Admin actions are logged in the `audit_logs` table
 
-## What technologies are used for this project?
+## Database Schema
 
-This project is built with:
+The platform uses several core tables:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `profiles` - User profiles with roles
+- `vendors` - Vendor company information  
+- `partners` - Partner company information
+- `products` - Product listings
+- `partnership_requests` - Partnership applications
+- `tags` - Global tags for categorization
+- `audit_logs` - Admin action tracking
 
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/a3a0018b-0866-42f8-b788-0df492afa6fa) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
+## Contributing
 
-Yes, you can!
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is private and proprietary to Rezollo.
