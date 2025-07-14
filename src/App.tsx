@@ -24,6 +24,7 @@ import AdminVendors from "./pages/admin/AdminVendors";
 import AdminPartners from "./pages/admin/AdminPartners";
 import AdminApplications from "./pages/admin/AdminApplications";
 import AdminTags from "./pages/admin/AdminTags";
+import VendorProfileEdit from "./pages/admin/VendorProfileEdit";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
           }>
             <Route path="overview" element={<AdminOverview />} />
             <Route path="vendors" element={<AdminVendors />} />
+            <Route path="vendors/:vendorId/edit" element={<VendorProfileEdit />} />
             <Route path="partners" element={<AdminPartners />} />
             <Route path="applications" element={<AdminApplications />} />
             <Route path="tags" element={<AdminTags />} />

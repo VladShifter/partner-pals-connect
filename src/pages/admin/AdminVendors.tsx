@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,7 @@ export default function AdminVendors() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingVendor, setEditingVendor] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm<EditVendorForm>();
 
@@ -85,9 +87,8 @@ export default function AdminVendors() {
 
       if (error) throw error;
 
-      setVendors(vendors.map(vendor => 
-        vendor.id === vendorId ? { ...vendor, status } : vendor
-      ));
+      // Refresh the list
+      fetchVendors();
 
       toast({
         title: "Success",
@@ -100,50 +101,6 @@ export default function AdminVendors() {
         description: "Failed to update vendor status",
         variant: "destructive"
       });
-    }
-  };
-
-  const updateVendorDetails = async (vendorId: string, data: EditVendorForm) => {
-    try {
-      const { error } = await supabase
-        .from('vendors')
-        .update(data)
-        .eq('id', vendorId);
-
-      if (error) throw error;
-
-      setVendors(vendors.map(vendor => 
-        vendor.id === vendorId ? { ...vendor, ...data } : vendor
-      ));
-
-      setEditingVendor(null);
-      toast({
-        title: "Success",
-        description: "Vendor details updated successfully"
-      });
-    } catch (error) {
-      console.error('Error updating vendor:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update vendor details",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const openEditModal = (vendor: Vendor) => {
-    setEditingVendor(vendor.id);
-    form.reset({
-      company_name: vendor.company_name,
-      website: vendor.website,
-      niche: vendor.niche,
-      pitch: vendor.pitch
-    });
-  };
-
-  const onSubmit = (data: EditVendorForm) => {
-    if (editingVendor) {
-      updateVendorDetails(editingVendor, data);
     }
   };
 
@@ -220,74 +177,14 @@ export default function AdminVendors() {
                 <TableCell>{new Date(vendor.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => openEditModal(vendor)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-96">
-                        <Form {...form}>
-                          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <h3 className="font-semibold">Edit Vendor</h3>
-                            
-                            <FormField
-                              control={form.control}
-                              name="company_name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Company Name</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="website"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Website</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="niche"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Niche</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="pitch"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Pitch</FormLabel>
-                                  <FormControl>
-                                    <Textarea {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <Button type="submit" className="w-full">Save Changes</Button>
-                          </form>
-                        </Form>
-                      </PopoverContent>
-                    </Popover>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin/vendors/${vendor.id}/edit`)}
+                    >
+                      <Edit2 className="h-4 w-4 mr-1" />
+                      Edit Profile
+                    </Button>
                     
                     {vendor.status === 'pending' && (
                       <>
