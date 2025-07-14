@@ -114,7 +114,7 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center">
@@ -130,7 +130,7 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -139,7 +139,7 @@ const ProductDetail = () => {
           <Button 
             variant="ghost" 
             onClick={() => navigate("/marketplace")}
-            className="p-0 h-auto text-blue-600 hover:text-blue-700"
+            className="p-0 h-auto text-primary hover:text-primary/80"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Marketplace
@@ -153,8 +153,8 @@ const ProductDetail = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-2 mb-2">
-                  <Building className="w-5 h-5 text-gray-500" />
-                  <span className="text-gray-600">{product.vendor}</span>
+                  <Building className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-muted-foreground">{product.vendor}</span>
                   <Badge variant="outline">{product.niche}</Badge>
                 </div>
                 <CardTitle className="text-3xl">{product.title}</CardTitle>
@@ -174,7 +174,7 @@ const ProductDetail = () => {
                 <div className="flex space-x-4">
                   <Button onClick={handleStartChat} size="lg">
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    Start Partnership Chat
+                    Apply
                   </Button>
                 </div>
               </CardContent>
@@ -200,106 +200,7 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
-            {/* What are you reselling */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Star className="w-5 h-5 mr-2" />
-                  What are you reselling
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Why You Should Resell This */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2" />
-                  Why You Should Resell This
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {product.reseller_benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Ideal for such resellers */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Ideal for such resellers as:
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {product.ideal_resellers.map((reseller, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{reseller}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Easy Ways to Get Customers */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Zap className="w-5 h-5 mr-2" />
-                  Easy Ways to Get Customers
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {product.getting_customers.map((method, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{method}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* How To Launch */}
-            <Card>
-              <CardHeader>
-                <CardTitle>How To Launch</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ol className="space-y-3">
-                  {product.launch_steps.map((step, index) => (
-                    <li key={index} className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <span className="text-gray-700">{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </CardContent>
-            </Card>
-
-            {/* Partnership Terms & Calculator */}
+            {/* Partnership Terms & Calculator - Moved up here */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -322,18 +223,21 @@ const ProductDetail = () => {
                   
                   {Object.entries(product.partner_terms).map(([type, terms]) => (
                     <TabsContent key={type} value={type} className="mt-4">
-                      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                      <div className="bg-accent rounded-lg p-4 mb-6">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-semibold text-lg">{formatPartnerType(type)}</h4>
                           <Badge variant="outline" className="text-lg px-3 py-1">
-                            {terms.margin_pct}% Commission
+                            {type === 'white_label' 
+                              ? 'Up to 300% margin rate' 
+                              : `${terms.margin_pct}% Commission`
+                            }
                           </Badge>
                         </div>
-                        <p className="text-gray-700">{terms.notes}</p>
+                        <p className="text-muted-foreground">{terms.notes}</p>
                       </div>
 
                       {/* Earnings Calculator */}
-                      <div className="bg-white border rounded-lg p-4">
+                      <div className="bg-card border rounded-lg p-4">
                         <h4 className="font-semibold text-lg mb-4 flex items-center">
                           <Calculator className="w-5 h-5 mr-2" />
                           Earnings Calculator
@@ -361,21 +265,33 @@ const ProductDetail = () => {
                             />
                           </div>
                           <div>
-                            <Label>Commission Rate</Label>
-                            <div className="mt-1 p-2 bg-gray-100 rounded text-center font-medium">
-                              {terms.margin_pct}%
-                            </div>
+                            <Label>{type === 'white_label' ? 'Your Margin (%)' : 'Commission Rate'}</Label>
+                            {type === 'white_label' ? (
+                              <Input
+                                type="number"
+                                value={calculatorValues.margin}
+                                onChange={(e) => setCalculatorValues({...calculatorValues, margin: parseInt(e.target.value) || 0})}
+                                className="mt-1"
+                                placeholder="Enter margin %"
+                                min="0"
+                                max="300"
+                              />
+                            ) : (
+                              <div className="mt-1 p-2 bg-muted rounded text-center font-medium">
+                                {terms.margin_pct}%
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        <div className="bg-blue-50 rounded-lg p-4">
+                        <div className="bg-primary/10 rounded-lg p-4">
                           <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Estimated Monthly Earnings</div>
-                            <div className="text-2xl font-bold text-blue-600">
-                              ${((calculatorValues.price * calculatorValues.deals * terms.margin_pct) / 100).toLocaleString()}
+                            <div className="text-sm text-muted-foreground mb-1">Estimated Monthly Earnings</div>
+                            <div className="text-2xl font-bold text-primary">
+                              ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct)) / 100).toLocaleString()}
                             </div>
-                            <div className="text-sm text-gray-600 mt-1">
-                              Annual: ${((calculatorValues.price * calculatorValues.deals * terms.margin_pct * 12) / 100).toLocaleString()}
+                            <div className="text-sm text-muted-foreground mt-1">
+                              Annual: ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct) * 12) / 100).toLocaleString()}
                             </div>
                           </div>
                         </div>
@@ -385,6 +301,106 @@ const ProductDetail = () => {
                 </Tabs>
               </CardContent>
             </Card>
+
+            {/* What are you reselling */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Star className="w-5 h-5 mr-2" />
+                  What are you reselling
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {product.features.map((feature, index) => (
+                    <li key={index} className="flex items-start space-x-2">
+                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Why You Should Resell This */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  Why You Should Resell This
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {product.reseller_benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-start space-x-2">
+                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground">{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Ideal for such resellers */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="w-5 h-5 mr-2" />
+                  Ideal for such resellers as:
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {product.ideal_resellers.map((reseller, index) => (
+                    <li key={index} className="flex items-start space-x-2">
+                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground">{reseller}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Easy Ways to Get Customers */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Zap className="w-5 h-5 mr-2" />
+                  Easy Ways to Get Customers
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {product.getting_customers.map((method, index) => (
+                    <li key={index} className="flex items-start space-x-2">
+                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground">{method}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* How To Launch */}
+            <Card>
+              <CardHeader>
+                <CardTitle>How To Launch</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ol className="space-y-3">
+                  {product.launch_steps.map((step, index) => (
+                    <li key={index} className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <span className="text-foreground">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </CardContent>
+            </Card>
+
           </div>
 
           {/* Sidebar */}
@@ -399,32 +415,32 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <h4 className="font-medium text-gray-900">{product.vendor}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{product.vendor_details.description}</p>
+                  <h4 className="font-medium text-foreground">{product.vendor}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">{product.vendor_details.description}</p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500">Founded</span>
+                    <span className="text-muted-foreground">Founded</span>
                     <div className="font-medium">{product.vendor_details.founded}</div>
                   </div>
                   <div>
-                    <span className="text-gray-500">Team Size</span>
+                    <span className="text-muted-foreground">Team Size</span>
                     <div className="font-medium">{product.vendor_details.employees}</div>
                   </div>
                 </div>
 
                 {/* Income Information */}
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h5 className="font-medium text-blue-900 mb-2">Earning Potential</h5>
+                <div className="bg-primary/10 rounded-lg p-4">
+                  <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-blue-700">Minimum result:</span>
-                      <span className="font-medium text-blue-900">${product.income_range.minimum.toLocaleString()}/mo</span>
+                      <span className="text-primary/80">Minimum result:</span>
+                      <span className="font-medium text-primary">${product.income_range.minimum.toLocaleString()}/mo</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-blue-700">Best Result for now:</span>
-                      <span className="font-medium text-blue-900">${product.income_range.maximum.toLocaleString()}/mo</span>
+                      <span className="text-primary/80">Best Result for now:</span>
+                      <span className="font-medium text-primary">${product.income_range.maximum.toLocaleString()}/mo</span>
                     </div>
                   </div>
                 </div>
