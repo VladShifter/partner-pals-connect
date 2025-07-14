@@ -53,11 +53,15 @@ export default function AdminVendors() {
 
   const fetchVendors = async () => {
     try {
+      console.log('Fetching vendors...');
       const { data, error } = await supabase
         .from('vendors')
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('Vendors data:', data);
+      console.log('Vendors error:', error);
+      
       if (error) throw error;
       setVendors((data || []) as Vendor[]);
     } catch (error) {
