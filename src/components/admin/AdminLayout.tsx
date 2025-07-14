@@ -26,6 +26,10 @@ export function AdminLayout() {
 
   const handleSignOut = async () => {
     try {
+      // Clear temporary admin session
+      localStorage.removeItem('temp_admin_email');
+      
+      // Also sign out from Supabase if signed in
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
@@ -33,6 +37,9 @@ export function AdminLayout() {
         title: "Signed out",
         description: "You have been signed out successfully"
       });
+      
+      // Redirect to admin login
+      window.location.href = '/admin/login';
     } catch (error: any) {
       toast({
         title: "Error",

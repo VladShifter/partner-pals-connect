@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Mail } from 'lucide-react';
+import { Mail, Settings } from 'lucide-react';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -19,19 +19,16 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/admin/overview`
-        }
-      });
-
-      if (error) throw error;
-
+      // Temporary bypass - just store email in localStorage and redirect
+      localStorage.setItem('temp_admin_email', email);
+      
       toast({
-        title: "Magic link sent!",
-        description: "Check your email for the login link."
+        title: "Logged in!",
+        description: `Temporarily logged in as ${email}`
       });
+      
+      // Redirect to admin overview
+      navigate('/admin/overview');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -49,7 +46,7 @@ export default function AdminLogin() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Admin Console</CardTitle>
           <CardDescription>
-            Sign in with your admin email to access the Rezollo admin console
+            Enter your admin email to access the console (temporary bypass active)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -69,12 +66,12 @@ export default function AdminLogin() {
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Sending Magic Link...
+                  Signing in...
                 </>
               ) : (
                 <>
-                  <Mail className="mr-2 h-4 w-4" />
-                  Send Magic Link
+                  <Settings className="mr-2 h-4 w-4" />
+                  Sign In (Temporary)
                 </>
               )}
             </Button>
