@@ -157,9 +157,14 @@ export type Database = {
           commission_rate: number | null
           created_at: string | null
           description: string | null
+          features: string[] | null
+          getting_customers: string[] | null
           id: string
+          ideal_resellers: string[] | null
+          launch_steps: string[] | null
           name: string
           price: number | null
+          reseller_benefits: string[] | null
           status: string | null
           updated_at: string | null
           vendor_id: string | null
@@ -168,9 +173,14 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           description?: string | null
+          features?: string[] | null
+          getting_customers?: string[] | null
           id?: string
+          ideal_resellers?: string[] | null
+          launch_steps?: string[] | null
           name: string
           price?: number | null
+          reseller_benefits?: string[] | null
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -179,9 +189,14 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           description?: string | null
+          features?: string[] | null
+          getting_customers?: string[] | null
           id?: string
+          ideal_resellers?: string[] | null
+          launch_steps?: string[] | null
           name?: string
           price?: number | null
+          reseller_benefits?: string[] | null
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null

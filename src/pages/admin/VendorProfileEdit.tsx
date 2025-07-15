@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Eye, Plus, X, Upload, Play, Image } from 'lucide-react';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import ProductForm from '@/components/admin/ProductForm';
 
 interface VendorProfile {
   id: string;
@@ -642,6 +643,16 @@ export default function VendorProfileEdit() {
                 </Card>
               </form>
             </Form>
+
+            {/* Products Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Products</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProductForm vendorId={vendorId} />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}

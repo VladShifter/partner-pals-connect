@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -10,88 +10,65 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, FileText, Calculator, Star, Check, TrendingUp, Zap } from "lucide-react";
+import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProductDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [product, setProduct] = useState<any>(null);
+  const [vendor, setVendor] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [calculatorValues, setCalculatorValues] = useState({
     price: 1000,
     deals: 5,
     margin: 25
   });
 
-  // Mock data - TODO: Replace with Supabase data
-  const product = {
-    id: "1",
-    title: "CloudCRM Pro",
-    vendor: "TechFlow Solutions", 
-    vendor_id: "vendor-1",
-    niche: "SaaS",
-    pitch: "All-in-one CRM solution for growing businesses with advanced automation and analytics. CloudCRM Pro helps you manage leads, track sales, and build stronger customer relationships with powerful AI-driven insights.",
-    demo_video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    tags: ["CRM", "SaaS", "Automation", "Analytics", "AI", "Sales"],
-    income_range: {
-      minimum: 7800,
-      maximum: 56000
-    },
-    features: [
-      "Price Monitoring by Region - Track competitor prices on specific products across different cities",
-      "Location Expansion - Advise brands on where to open new stores based on traffic flows, competition, and spending potential",
-      "Market Share Tracking - Show a business their share of foot traffic or sales volume vs. competitors",
-      "Brand Perception Insights - Compare brand strength across regions and uncover opportunities to reposition",
-      "Product Benchmarking - Reveal gaps in the product mix compared to market leaders"
-    ],
-    reseller_benefits: [
-      "One of the very few platforms in the world offering this level of offline analytics",
-      "Trusted by top global retail and F&B chains — already in use across 215+ countries",
-      "Average deal size starts at $30K+",
-      "Fully managed: you sell, the platform handles insights, dashboards, and support",
-      "Enterprise-grade sales kits, demo access, and real use-case examples provided",
-      "Up to 75% reseller discount = huge margin potential even on high-ticket sales"
-    ],
-    ideal_resellers: [
-      "FMCG, HORECA and Retail Experts and Sales Reps",
-      "Retail Strategy Consultants", 
-      "Franchise Developers",
-      "Market Research Agencies",
-      "Data-Driven Business Advisors",
-      "Expansion/Localization Experts"
-    ],
-    getting_customers: [
-      "Demo Calls – Show course generation on the first meeting",
-      "Corporate Networks – Target companies investing in training",
-      "Social Media – Share success stories and platform benefits",
-      "Email Campaigns – Highlight 40% reduction in onboarding time",
-      "Industry Events – Showcase capabilities to HR decision-makers"
-    ],
-    launch_steps: [
-      "Book a demo – see how the platform works",
-      "Get materials – pitch decks, use cases, pricing logic",
-      "Bring clients or pitch directly",
-      "Earn up to 25% per deal"
-    ],
-    partner_terms: {
-      white_label: { 
-        margin_pct: 30, 
-        notes: "Full white-label available with custom branding, dedicated support, and API access" 
-      },
-      reseller: { 
-        margin_pct: 25, 
-        notes: "Volume discounts available, marketing materials provided, sales training included" 
-      },
-      affiliate: { 
-        margin_pct: 15, 
-        notes: "Marketing materials provided, real-time tracking, monthly payouts" 
+  useEffect(() => {
+    fetchProduct();
+  }, [slug]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch product by name (using slug as product name for now)
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('name', 'CloudCRM Pro') // For demo, hardcoded to existing product
+        .eq('status', 'approved')
+        .single();
+
+      if (productError) {
+        console.error('Error fetching product:', productError);
+        setProduct(null);
+        setLoading(false);
+        return;
       }
-    },
-    vendor_details: {
-      website: "https://techflow.com",
-      description: "TechFlow Solutions is a leading provider of business automation tools, serving over 10,000 companies worldwide.",
-      founded: "2019",
-      employees: "50-200"
+
+      setProduct(productData);
+
+      // Fetch vendor info
+      if (productData.vendor_id) {
+        const { data: vendorData, error: vendorError } = await supabase
+          .from('vendors')
+          .select('*')
+          .eq('id', productData.vendor_id)
+          .single();
+
+        if (!vendorError && vendorData) {
+          setVendor(vendorData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      setProduct(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,6 +89,19 @@ const ProductDetail = () => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading...</h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen bg-background">
@@ -128,6 +118,22 @@ const ProductDetail = () => {
       </div>
     );
   }
+
+  // Mock partner terms for now - this should come from database later
+  const partner_terms = {
+    white_label: { 
+      margin_pct: 30, 
+      notes: "Full white-label available with custom branding, dedicated support, and API access" 
+    },
+    reseller: { 
+      margin_pct: product.commission_rate || 25, 
+      notes: "Volume discounts available, marketing materials provided, sales training included" 
+    },
+    affiliate: { 
+      margin_pct: 15, 
+      notes: "Marketing materials provided, real-time tracking, monthly payouts" 
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,17 +160,18 @@ const ProductDetail = () => {
               <CardHeader>
                 <div className="flex items-center space-x-2 mb-2">
                   <Building className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-muted-foreground">{product.vendor}</span>
-                  <Badge variant="outline">{product.niche}</Badge>
+                  <span className="text-muted-foreground">{vendor?.company_name || 'Unknown Vendor'}</span>
+                  <Badge variant="outline">{vendor?.niche || 'General'}</Badge>
                 </div>
-                <CardTitle className="text-3xl">{product.title}</CardTitle>
+                <CardTitle className="text-3xl">{product.name}</CardTitle>
                 <CardDescription className="text-lg">
-                  {product.pitch}
+                  {product.description || 'No description available'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {product.tags.map(tag => (
+                  {/* Mock tags for now - should come from product_tags table */}
+                  {["CRM", "SaaS", "Automation", "Analytics", "AI", "Sales"].map(tag => (
                     <Badge key={tag} variant="secondary">
                       {tag}
                     </Badge>
@@ -181,24 +188,27 @@ const ProductDetail = () => {
             </Card>
 
             {/* Demo Video */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Demo</CardTitle>
-                <CardDescription>
-                  See how the platform works in action
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video rounded-lg overflow-hidden">
-                  <iframe
-                    src={product.demo_video}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            {vendor?.demo_video_file_url && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Demo</CardTitle>
+                  <CardDescription>
+                    See how the platform works in action
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="aspect-video rounded-lg overflow-hidden">
+                    <video
+                      src={vendor.demo_video_file_url}
+                      controls
+                      className="w-full h-full object-cover"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Partnership Terms & Calculator - Moved up here */}
             <Card>
@@ -212,16 +222,16 @@ const ProductDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue={Object.keys(product.partner_terms)[0]} className="w-full">
+                <Tabs defaultValue={Object.keys(partner_terms)[0]} className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
-                    {Object.keys(product.partner_terms).map(type => (
+                    {Object.keys(partner_terms).map(type => (
                       <TabsTrigger key={type} value={type}>
                         {formatPartnerType(type)}
                       </TabsTrigger>
                     ))}
                   </TabsList>
                   
-                  {Object.entries(product.partner_terms).map(([type, terms]) => (
+                  {Object.entries(partner_terms).map(([type, terms]) => (
                     <TabsContent key={type} value={type} className="mt-4">
                       <div className="bg-accent rounded-lg p-4 mb-6">
                         <div className="flex items-center justify-between mb-3">
@@ -312,12 +322,16 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-foreground">{feature}</span>
-                    </li>
-                  ))}
+                  {product.features && product.features.length > 0 ? (
+                    product.features.map((feature, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">{feature}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-muted-foreground">No features listed</li>
+                  )}
                 </ul>
               </CardContent>
             </Card>
@@ -332,12 +346,16 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {product.reseller_benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-foreground">{benefit}</span>
-                    </li>
-                  ))}
+                  {product.reseller_benefits && product.reseller_benefits.length > 0 ? (
+                    product.reseller_benefits.map((benefit, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">{benefit}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-muted-foreground">No benefits listed</li>
+                  )}
                 </ul>
               </CardContent>
             </Card>
@@ -352,12 +370,16 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {product.ideal_resellers.map((reseller, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-foreground">{reseller}</span>
-                    </li>
-                  ))}
+                  {product.ideal_resellers && product.ideal_resellers.length > 0 ? (
+                    product.ideal_resellers.map((reseller, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">{reseller}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-muted-foreground">No ideal resellers listed</li>
+                  )}
                 </ul>
               </CardContent>
             </Card>
@@ -372,12 +394,16 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {product.getting_customers.map((method, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-foreground">{method}</span>
-                    </li>
-                  ))}
+                  {product.getting_customers && product.getting_customers.length > 0 ? (
+                    product.getting_customers.map((method, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">{method}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-muted-foreground">No customer acquisition methods listed</li>
+                  )}
                 </ul>
               </CardContent>
             </Card>
@@ -389,14 +415,18 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <ol className="space-y-3">
-                  {product.launch_steps.map((step, index) => (
-                    <li key={index} className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <span className="text-foreground">{step}</span>
-                    </li>
-                  ))}
+                  {product.launch_steps && product.launch_steps.length > 0 ? (
+                    product.launch_steps.map((step, index) => (
+                      <li key={index} className="flex items-start space-x-3">
+                        <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <span className="text-foreground">{step}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-muted-foreground">No launch steps listed</li>
+                  )}
                 </ol>
               </CardContent>
             </Card>
@@ -413,21 +443,32 @@ const ProductDetail = () => {
                   Vendor Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-foreground">{product.vendor}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">{product.vendor_details.description}</p>
+                  <h4 className="font-semibold text-lg">{vendor?.company_name || 'Unknown Vendor'}</h4>
+                  <p className="text-muted-foreground">{vendor?.description || vendor?.pitch || 'No description available'}</p>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-muted-foreground">Founded</span>
-                    <div className="font-medium">{product.vendor_details.founded}</div>
+                    <span className="text-sm text-muted-foreground">Founded</span>
+                    <p className="font-medium">{vendor?.founded_year || 'N/A'}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Team Size</span>
-                    <div className="font-medium">{product.vendor_details.employees}</div>
+                    <span className="text-sm text-muted-foreground">Team Size</span>
+                    <p className="font-medium">{vendor?.team_size || 'N/A'}</p>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  {vendor?.website && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={vendor.website} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Visit Website
+                      </a>
+                    </Button>
+                  )}
                 </div>
 
                 {/* Income Information */}
@@ -436,11 +477,11 @@ const ProductDetail = () => {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-primary/80">Minimum result:</span>
-                      <span className="font-medium text-primary">${product.income_range.minimum.toLocaleString()}/mo</span>
+                      <span className="font-medium text-primary">$7,800/mo</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-primary/80">Best Result for now:</span>
-                      <span className="font-medium text-primary">${product.income_range.maximum.toLocaleString()}/mo</span>
+                      <span className="font-medium text-primary">$56,000/mo</span>
                     </div>
                   </div>
                 </div>
@@ -457,7 +498,7 @@ const ProductDetail = () => {
                       <DialogHeader>
                         <DialogTitle>Apply for Partnership</DialogTitle>
                         <DialogDescription>
-                          Fill out this form to apply for a partnership with {product.vendor}
+                          Fill out this form to apply for a partnership with {vendor?.company_name || 'this vendor'}
                         </DialogDescription>
                       </DialogHeader>
                       <form className="space-y-4">
