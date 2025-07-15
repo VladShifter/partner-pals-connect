@@ -35,6 +35,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
+  const [existingProducts, setExistingProducts] = useState<any[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(productId || null);
+  const [isCreatingNew, setIsCreatingNew] = useState(!productId);
 
   const form = useForm<ProductFormData>({
     defaultValues: {
@@ -54,10 +57,19 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
 
   useEffect(() => {
     fetchVendors();
-    if (productId) {
+  }, []);
+
+  useEffect(() => {
+    if (vendorId) {
+      fetchVendorProducts();
+    }
+  }, [vendorId]);
+
+  useEffect(() => {
+    if (selectedProductId || productId) {
       fetchProduct();
     }
-  }, [productId]);
+  }, [selectedProductId, productId]);
 
   const fetchVendors = async () => {
     const { data, error } = await supabase
@@ -73,13 +85,30 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
     setVendors(data || []);
   };
 
-  const fetchProduct = async () => {
-    if (!productId) return;
+  const fetchVendorProducts = async () => {
+    if (!vendorId) return;
 
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('id', productId)
+      .eq('vendor_id', vendorId);
+
+    if (error) {
+      console.error('Error fetching vendor products:', error);
+      return;
+    }
+
+    setExistingProducts(data || []);
+  };
+
+  const fetchProduct = async () => {
+    const currentProductId = selectedProductId || productId;
+    if (!currentProductId) return;
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', currentProductId)
       .single();
 
     if (error) {
@@ -100,13 +129,37 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
         commission_rate: data.commission_rate,
         status: data.status || 'pending',
         vendor_id: data.vendor_id || '',
-        features: data.features || [''],
-        reseller_benefits: data.reseller_benefits || [''],
-        ideal_resellers: data.ideal_resellers || [''],
-        getting_customers: data.getting_customers || [''],
-        launch_steps: data.launch_steps || ['']
+        features: data.features && data.features.length > 0 ? data.features : [''],
+        reseller_benefits: data.reseller_benefits && data.reseller_benefits.length > 0 ? data.reseller_benefits : [''],
+        ideal_resellers: data.ideal_resellers && data.ideal_resellers.length > 0 ? data.ideal_resellers : [''],
+        getting_customers: data.getting_customers && data.getting_customers.length > 0 ? data.getting_customers : [''],
+        launch_steps: data.launch_steps && data.launch_steps.length > 0 ? data.launch_steps : ['']
       });
     }
+    setIsCreatingNew(false);
+  };
+
+  const handleProductSelect = (productId: string) => {
+    setSelectedProductId(productId);
+    setIsCreatingNew(false);
+  };
+
+  const handleCreateNew = () => {
+    setSelectedProductId(null);
+    setIsCreatingNew(true);
+    form.reset({
+      name: '',
+      description: '',
+      price: null,
+      commission_rate: null,
+      status: 'pending',
+      vendor_id: vendorId || '',
+      features: [''],
+      reseller_benefits: [''],
+      ideal_resellers: [''],
+      getting_customers: [''],
+      launch_steps: ['']
+    });
   };
 
   const addArrayItem = (fieldName: keyof ProductFormData) => {
@@ -142,11 +195,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
       };
 
       let result;
-      if (productId) {
+      const currentProductId = selectedProductId || productId;
+      if (currentProductId) {
         result = await supabase
           .from('products')
           .update(filteredData)
-          .eq('id', productId);
+          .eq('id', currentProductId);
       } else {
         result = await supabase
           .from('products')
@@ -159,18 +213,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
 
       toast({
         title: "Success",
-        description: `Product ${productId ? 'updated' : 'created'} successfully`
+        description: `Product ${currentProductId ? 'updated' : 'created'} successfully`
       });
+
+      // Refresh the product list
+      if (vendorId) {
+        fetchVendorProducts();
+      }
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
       console.error('Error saving product:', error);
+      const currentProductId = selectedProductId || productId;
       toast({
         variant: "destructive",
         title: "Error",
-        description: `Failed to ${productId ? 'update' : 'create'} product`
+        description: `Failed to ${currentProductId ? 'update' : 'create'} product`
       });
     } finally {
       setLoading(false);
@@ -221,10 +281,62 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{productId ? 'Edit Product' : 'Create Product'}</CardTitle>
-      </CardHeader>
+    <div className="space-y-6">
+      {/* Existing Products List */}
+      {vendorId && existingProducts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Existing Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              {existingProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedProductId === product.id 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => handleProductSelect(product.id)}
+                >
+                  <h4 className="font-medium">{product.name}</h4>
+                  <p className="text-sm text-muted-foreground">{product.description}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <Badge variant={product.status === 'approved' ? 'default' : 'secondary'}>
+                      {product.status}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      ${product.price || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleCreateNew}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create New Product
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Product Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {isCreatingNew 
+              ? 'Create New Product' 
+              : selectedProductId 
+                ? 'Edit Product' 
+                : 'Product Form'
+            }
+          </CardTitle>
+        </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -363,13 +475,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
 
             <div className="flex justify-end space-x-2">
               <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : (productId ? 'Update Product' : 'Create Product')}
+                {loading ? 'Saving...' : (selectedProductId || productId ? 'Update Product' : 'Create Product')}
               </Button>
             </div>
           </form>
         </Form>
       </CardContent>
     </Card>
+    </div>
   );
 };
 

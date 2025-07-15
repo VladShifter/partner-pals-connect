@@ -35,11 +35,18 @@ const ProductDetail = () => {
     try {
       setLoading(true);
       
-      // Fetch product by name (using slug as product name for now)
+      // Convert slug to product name (cloudcrm-pro -> CloudCRM Pro)
+      const productName = slug?.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ').replace('Crm', 'CRM') || '';
+      
+      console.log('Looking for product:', productName);
+      
+      // Fetch product by name
       const { data: productData, error: productError } = await supabase
         .from('products')
         .select('*')
-        .eq('name', 'CloudCRM Pro') // For demo, hardcoded to existing product
+        .ilike('name', `%${productName}%`)
         .eq('status', 'approved')
         .single();
 
