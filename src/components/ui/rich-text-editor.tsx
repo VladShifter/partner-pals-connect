@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef } from 'react';
+import React, { forwardRef, useEffect, useRef, useCallback, memo } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,13 +16,23 @@ const formats = [
   'list', 'bullet', 'indent', 'link', 'blockquote', 'align', 'image'
 ];
 
-const RichTextEditor = forwardRef<ReactQuill, RichTextEditorProps>(
+const RichTextEditor = memo(forwardRef<ReactQuill, RichTextEditorProps>(
   ({ value, onChange, placeholder, className }, ref) => {
     const quillRef = useRef<ReactQuill>(null);
+    const timeoutRef = useRef<NodeJS.Timeout>();
     const { toast } = useToast();
 
-    // Image upload handler
-    const imageHandler = () => {
+    // Debounced onChange to prevent rapid re-renders
+    const debouncedOnChange = useCallback((content: string) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        onChange(content);
+      }, 300);
+    }, [onChange]);
+
+    const imageHandler = useCallback(() => {
       const input = document.createElement('input');
       input.setAttribute('type', 'file');
       input.setAttribute('accept', 'image/*');
@@ -87,7 +97,16 @@ const RichTextEditor = forwardRef<ReactQuill, RichTextEditorProps>(
           });
         }
       };
-    };
+    }, [toast]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, []);
 
     const modules = {
       toolbar: {
@@ -141,16 +160,17 @@ const RichTextEditor = forwardRef<ReactQuill, RichTextEditorProps>(
         <ReactQuill
           ref={quillRef}
           theme="snow"
-          value={value}
-          onChange={onChange}
+          value={value || ''}
+          onChange={debouncedOnChange}
           modules={modules}
           formats={formats}
           placeholder={placeholder}
+          preserveWhitespace
         />
       </div>
     );
   }
-);
+));
 
 RichTextEditor.displayName = 'RichTextEditor';
 

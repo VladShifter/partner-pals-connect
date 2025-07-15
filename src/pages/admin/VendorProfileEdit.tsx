@@ -356,6 +356,7 @@ export default function VendorProfileEdit() {
                           <FormLabel>Detailed Description</FormLabel>
                           <FormControl>
                             <RichTextEditor
+                              key={`description-${vendorId}`}
                               value={field.value || ''}
                               onChange={field.onChange}
                               placeholder="Enter detailed description with rich formatting..."
