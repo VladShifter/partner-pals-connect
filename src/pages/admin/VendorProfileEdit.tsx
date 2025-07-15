@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Eye, Plus, X, Upload, Play, Image } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Plus, X, Upload, Play, Image, Building, MessageSquare } from 'lucide-react';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import ProductForm from '@/components/admin/ProductForm';
 
@@ -687,76 +687,55 @@ export default function VendorProfileEdit() {
             <Card>
               <CardHeader>
                 <CardTitle>Marketplace Preview</CardTitle>
+                <CardDescription>
+                  This is how your vendor's product will appear in the marketplace
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="border rounded-lg p-4 bg-white">
-                    {/* Preview Image */}
-                    {form.watch('preview_image_url') && (
-                      <div className="w-full h-48 bg-gray-200 rounded-lg mb-4 overflow-hidden">
+                <div className="max-w-sm">
+                  {/* Actual marketplace card preview */}
+                  <Card className="h-full hover:shadow-lg transition-shadow">
+                    {/* Product Banner Image */}
+                    <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                      {form.watch('banner_image_url') ? (
                         <img 
-                          src={form.watch('preview_image_url')} 
-                          alt="Preview" 
-                          className="w-full h-full object-cover"
+                          src={form.watch('banner_image_url')}
+                          alt="Product banner"
+                          className="w-full h-full object-cover transition-transform hover:scale-105"
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                          <span className="text-white text-sm">Product Banner</span>
+                        </div>
+                      )}
+                    </div>
                     
-                    <div className="flex items-start space-x-4">
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                        {form.watch('logo_url') ? (
-                          <img 
-                            src={form.watch('logo_url')} 
-                            alt="Logo" 
-                            className="w-12 h-12 object-contain"
-                          />
-                        ) : (
-                          <span className="text-xs text-gray-500">Logo</span>
-                        )}
+                    <CardHeader>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Building className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">{form.watch('company_name') || 'Company Name'}</span>
+                        <Badge variant="outline" className="text-xs">{form.watch('niche') || 'Industry'}</Badge>
                       </div>
-                      <div className="flex-1">
-                        <FormField
-                          control={form.control}
-                          name="company_name"
-                          render={({ field }) => (
-                            <Input 
-                              {...field}
-                              className="font-semibold text-lg border-0 bg-transparent p-0 focus-visible:ring-0"
-                              placeholder="Company Name"
-                            />
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="niche"
-                          render={({ field }) => (
-                            <Input 
-                              {...field}
-                              className="text-gray-600 text-sm border-0 bg-transparent p-0 focus-visible:ring-0"
-                              placeholder="Industry"
-                            />
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="pitch"
-                          render={({ field }) => (
-                            <Textarea 
-                              {...field}
-                              className="text-gray-700 text-sm mt-2 border-0 bg-transparent p-0 focus-visible:ring-0 resize-none"
-                              placeholder="Company pitch will appear here..."
-                              rows={2}
-                            />
-                          )}
-                        />
-                        <div className="flex flex-wrap gap-2 mt-3">
+                      <CardTitle className="text-lg">
+                        {form.watch('company_name') ? `${form.watch('company_name')} Suite` : 'Product Name'}
+                      </CardTitle>
+                      <CardDescription className="line-clamp-3">
+                        {form.watch('pitch') || 'Your product description will appear here...'}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-1">
                           {selectedTags.length > 0 ? (
                             tags
                               .filter(tag => selectedTags.includes(tag.id))
+                              .slice(0, 3)
                               .map(tag => (
                                 <Badge 
                                   key={tag.id}
-                                  variant="secondary"
+                                  variant="secondary" 
+                                  className="text-xs"
                                   style={{ 
                                     backgroundColor: tag.color_hex + '20',
                                     color: tag.color_hex,
@@ -767,12 +746,33 @@ export default function VendorProfileEdit() {
                                 </Badge>
                               ))
                           ) : (
-                            <Badge variant="secondary">No tags selected</Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              No tags
+                            </Badge>
+                          )}
+                          {selectedTags.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{selectedTags.length - 3}
+                            </Badge>
                           )}
                         </div>
+                        
+                        <div className="text-xs text-gray-600">
+                          <div className="font-medium mb-1">Available for:</div>
+                          <div>white label, reseller, affiliate</div>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Button size="sm" className="flex-1" disabled>
+                            View Details
+                          </Button>
+                          <Button variant="outline" size="sm" disabled>
+                            <MessageSquare className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
