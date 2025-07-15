@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building, MessageSquare, ExternalLink } from "lucide-react";
+import { Building, MessageSquare, ExternalLink, Play } from "lucide-react";
 
 interface Product {
   id: string;
@@ -85,6 +85,10 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                 </Link>
               </Button>
               <Button variant="outline" size="sm">
+                <Play className="w-4 h-4 mr-1" />
+                Watch Demo
+              </Button>
+              <Button variant="outline" size="sm">
                 <MessageSquare className="w-4 h-4 mr-1" />
                 Start Chat
               </Button>
@@ -147,6 +151,9 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
               <Link to={`/product/${product.slug}`}>
                 View Details
               </Link>
+            </Button>
+            <Button variant="outline" size="sm">
+              <Play className="w-4 h-4" />
             </Button>
             <Button variant="outline" size="sm">
               <MessageSquare className="w-4 h-4" />
