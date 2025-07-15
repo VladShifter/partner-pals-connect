@@ -233,9 +233,17 @@ export default function VendorProfileEdit() {
 
       form.setValue('banner_image_url', data.publicUrl);
       
+      // Immediately save to database
+      const { error: updateError } = await supabase
+        .from('vendors')
+        .update({ banner_image_url: data.publicUrl })
+        .eq('id', vendorId);
+
+      if (updateError) throw updateError;
+      
       toast({
         title: "Success",
-        description: "Banner image uploaded successfully"
+        description: "Banner image uploaded and saved successfully"
       });
     } catch (error: any) {
       console.error('Error uploading banner:', error);
