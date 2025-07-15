@@ -33,25 +33,39 @@ const RichTextEditor = forwardRef<ReactQuill, RichTextEditorProps>(
         if (!file) return;
 
         try {
+          console.log('Starting image upload...', file.name);
+          
           // Upload image to Supabase storage
           const fileExt = file.name.split('.').pop();
           const fileName = `${Math.random()}.${fileExt}`;
+          
+          console.log('Uploading to storage...', fileName);
           const { data, error } = await supabase.storage
             .from('editor-images')
             .upload(fileName, file);
 
-          if (error) throw error;
+          if (error) {
+            console.error('Storage upload error:', error);
+            throw error;
+          }
+
+          console.log('Upload successful:', data);
 
           // Get public URL
           const { data: { publicUrl } } = supabase.storage
             .from('editor-images')
             .getPublicUrl(fileName);
 
+          console.log('Public URL:', publicUrl);
+
           // Insert image into editor
           const quill = quillRef.current?.getEditor();
           if (quill) {
             const range = quill.getSelection();
+            console.log('Inserting image at range:', range);
             quill.insertEmbed(range?.index || 0, 'image', publicUrl);
+          } else {
+            console.error('Quill editor not found');
           }
 
           toast({
