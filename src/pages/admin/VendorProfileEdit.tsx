@@ -203,6 +203,52 @@ export default function VendorProfileEdit() {
     }
   };
 
+  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingVideo(true); // Reuse the same loading state
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${vendorId}/banner-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('editor-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('editor-images')
+        .getPublicUrl(fileName);
+
+      form.setValue('banner_image_url', data.publicUrl);
+      
+      toast({
+        title: "Success",
+        description: "Banner image uploaded successfully"
+      });
+    } catch (error: any) {
+      console.error('Error uploading banner:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload banner image",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -695,20 +741,38 @@ export default function VendorProfileEdit() {
                 <div className="max-w-sm">
                   {/* Actual marketplace card preview */}
                   <Card className="h-full hover:shadow-lg transition-shadow">
-                    {/* Product Banner Image */}
-                    <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                      {form.watch('banner_image_url') ? (
-                        <img 
-                          src={form.watch('banner_image_url')}
-                          alt="Product banner"
-                          className="w-full h-full object-cover transition-transform hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                          <span className="text-white text-sm">Product Banner</span>
-                        </div>
-                      )}
-                    </div>
+                     {/* Product Banner Image */}
+                     <div className="aspect-video w-full overflow-hidden rounded-t-lg relative group cursor-pointer">
+                       <input
+                         type="file"
+                         accept="image/*"
+                         onChange={handleBannerUpload}
+                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                         disabled={uploadingVideo}
+                       />
+                       {form.watch('banner_image_url') ? (
+                         <img 
+                           src={form.watch('banner_image_url')}
+                           alt="Product banner"
+                           className="w-full h-full object-cover transition-transform hover:scale-105"
+                         />
+                       ) : (
+                         <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                           <span className="text-white text-sm">Product Banner</span>
+                         </div>
+                       )}
+                       {/* Upload overlay */}
+                       <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         {uploadingVideo ? (
+                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                         ) : (
+                           <div className="text-white text-center">
+                             <Upload className="w-6 h-6 mx-auto mb-1" />
+                             <span className="text-xs">Click to upload</span>
+                           </div>
+                         )}
+                       </div>
+                     </div>
                     
                     <CardHeader>
                       <div className="flex items-center space-x-2 mb-2">
