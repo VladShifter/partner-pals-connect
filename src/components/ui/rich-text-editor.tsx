@@ -77,6 +77,17 @@ const RichTextEditor = memo(forwardRef<ReactQuill, RichTextEditorProps>(
               // Insert image at the end to avoid selection issues
               quill.insertEmbed(length - 1, 'image', publicUrl);
               console.log('Image inserted successfully at position:', length - 1);
+              
+              // Force update the content to trigger onChange immediately
+              const newContent = quill.root.innerHTML;
+              console.log('Forcing content update:', newContent);
+              
+              // Clear any pending debounced call and call onChange immediately
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+              }
+              onChange(newContent);
+              
             } catch (error) {
               console.error('Error inserting image:', error);
             }
