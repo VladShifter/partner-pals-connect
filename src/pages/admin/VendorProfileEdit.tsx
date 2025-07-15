@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Eye, Plus, X, Upload, Play, Image } from 'lucide-react';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface VendorProfile {
   id: string;
@@ -354,10 +355,11 @@ export default function VendorProfileEdit() {
                         <FormItem>
                           <FormLabel>Detailed Description</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Detailed description for the vendor page..."
-                              className="min-h-[150px]"
-                              {...field}
+                            <RichTextEditor
+                              value={field.value || ''}
+                              onChange={field.onChange}
+                              placeholder="Enter detailed description with rich formatting..."
+                              className="min-h-[200px]"
                             />
                           </FormControl>
                           <FormMessage />
