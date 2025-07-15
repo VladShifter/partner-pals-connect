@@ -58,40 +58,17 @@ const RichTextEditor = forwardRef<ReactQuill, RichTextEditorProps>(
 
           console.log('Public URL:', publicUrl);
 
-          // Insert image into editor with safer approach
+          // Insert image into editor with simplified approach
           const quill = quillRef.current?.getEditor();
           if (quill) {
             try {
-              // Get current selection or set to end if no selection
-              let range = quill.getSelection();
-              if (!range) {
-                // If no selection, insert at the end of the document
-                range = { index: quill.getLength(), length: 0 };
-              }
-              
-              console.log('Inserting image at range:', range);
-              
-              // Focus the editor first to ensure it's active
-              quill.focus();
-              
-              // Small delay to ensure focus is set
-               setTimeout(() => {
-                 try {
-                   quill.insertEmbed(range!.index, 'image', publicUrl);
-                   // Move cursor after the image
-                   quill.setSelection({ index: range!.index + 1, length: 0 });
-                 } catch (embedError) {
-                   console.error('Error inserting embed:', embedError);
-                   // Fallback: just append to the end
-                   const length = quill.getLength();
-                   quill.insertEmbed(length - 1, 'image', publicUrl);
-                 }
-               }, 100);
-            } catch (error) {
-              console.error('Error with range selection:', error);
-              // Fallback: insert at the end
+              // Get current content length
               const length = quill.getLength();
+              // Insert image at the end to avoid selection issues
               quill.insertEmbed(length - 1, 'image', publicUrl);
+              console.log('Image inserted successfully at position:', length - 1);
+            } catch (error) {
+              console.error('Error inserting image:', error);
             }
           } else {
             console.error('Quill editor not found');
