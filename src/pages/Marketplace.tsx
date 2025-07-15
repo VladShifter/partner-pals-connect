@@ -37,7 +37,8 @@ const Marketplace = () => {
             company_name,
             niche,
             pitch,
-            website
+            website,
+            banner_image_url
           )
         `)
         .eq('status', 'approved')
@@ -54,7 +55,7 @@ const Marketplace = () => {
         pitch: product.description || product.vendors?.pitch || '',
         tags: [product.vendors?.niche || 'General'], // We'll expand this later
         slug: product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        image: getProductImage(product.vendors?.niche),
+        image: product.vendors?.banner_image_url || getProductImage(product.vendors?.niche),
         partner_terms: getDefaultPartnerTerms(),
         price: product.price,
         commission_rate: product.commission_rate
