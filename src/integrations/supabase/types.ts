@@ -288,6 +288,7 @@ export type Database = {
           banner_image_url: string | null
           company_name: string
           created_at: string | null
+          demo_video_file_url: string | null
           id: string
           niche: string | null
           pitch: string | null
@@ -301,6 +302,7 @@ export type Database = {
           banner_image_url?: string | null
           company_name: string
           created_at?: string | null
+          demo_video_file_url?: string | null
           id?: string
           niche?: string | null
           pitch?: string | null
@@ -314,6 +316,7 @@ export type Database = {
           banner_image_url?: string | null
           company_name?: string
           created_at?: string | null
+          demo_video_file_url?: string | null
           id?: string
           niche?: string | null
           pitch?: string | null

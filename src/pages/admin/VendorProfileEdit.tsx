@@ -22,6 +22,7 @@ interface VendorProfile {
   description?: string;
   logo_url?: string;
   demo_video_url?: string;
+  demo_video_file_url?: string;
   founded_year?: number;
   team_size?: string;
   location?: string;
@@ -37,6 +38,7 @@ export default function VendorProfileEdit() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<VendorProfile>();
@@ -110,6 +112,7 @@ export default function VendorProfileEdit() {
           description: data.description,
           logo_url: data.logo_url,
           demo_video_url: data.demo_video_url,
+          demo_video_file_url: data.demo_video_file_url,
           founded_year: data.founded_year,
           team_size: data.team_size,
           location: data.location,
@@ -150,6 +153,52 @@ export default function VendorProfileEdit() {
         ? prev.filter(id => id !== tagId)
         : [...prev, tagId]
     );
+  };
+
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      toast({
+        title: "Error",
+        description: "Please select a video file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingVideo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${vendorId}/demo-video-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('vendor-videos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('vendor-videos')
+        .getPublicUrl(fileName);
+
+      form.setValue('demo_video_file_url', data.publicUrl);
+      
+      toast({
+        title: "Success",
+        description: "Video uploaded successfully"
+      });
+    } catch (error: any) {
+      console.error('Error uploading video:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload video",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingVideo(false);
+    }
   };
 
   if (loading) {
@@ -502,6 +551,49 @@ export default function VendorProfileEdit() {
                         </FormItem>
                       )}
                     />
+
+                    <div className="flex items-center space-x-4">
+                      <div className="w-full h-px bg-gray-300"></div>
+                      <span className="text-sm text-gray-500 whitespace-nowrap">OR</span>
+                      <div className="w-full h-px bg-gray-300"></div>
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="demo_video_file_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Upload Demo Video</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <div className="flex space-x-2">
+                                <Input 
+                                  type="file"
+                                  accept="video/*"
+                                  onChange={handleVideoUpload}
+                                  disabled={uploadingVideo}
+                                />
+                                {uploadingVideo && (
+                                  <div className="flex items-center">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                  </div>
+                                )}
+                              </div>
+                              {field.value && (
+                                <div className="mt-2">
+                                  <video 
+                                    src={field.value} 
+                                    controls 
+                                    className="w-full max-w-md h-40 rounded border"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </CardContent>
                 </Card>
 
@@ -609,11 +701,40 @@ export default function VendorProfileEdit() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{form.watch('company_name') || 'Company Name'}</h3>
-                        <p className="text-gray-600 text-sm">{form.watch('niche') || 'Industry'}</p>
-                        <p className="text-gray-700 text-sm mt-2">
-                          {form.watch('pitch') || 'Company pitch will appear here...'}
-                        </p>
+                        <FormField
+                          control={form.control}
+                          name="company_name"
+                          render={({ field }) => (
+                            <Input 
+                              {...field}
+                              className="font-semibold text-lg border-0 bg-transparent p-0 focus-visible:ring-0"
+                              placeholder="Company Name"
+                            />
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="niche"
+                          render={({ field }) => (
+                            <Input 
+                              {...field}
+                              className="text-gray-600 text-sm border-0 bg-transparent p-0 focus-visible:ring-0"
+                              placeholder="Industry"
+                            />
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="pitch"
+                          render={({ field }) => (
+                            <Textarea 
+                              {...field}
+                              className="text-gray-700 text-sm mt-2 border-0 bg-transparent p-0 focus-visible:ring-0 resize-none"
+                              placeholder="Company pitch will appear here..."
+                              rows={2}
+                            />
+                          )}
+                        />
                         <div className="flex flex-wrap gap-2 mt-3">
                           {selectedTags.length > 0 ? (
                             tags
