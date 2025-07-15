@@ -285,33 +285,39 @@ export type Database = {
       }
       vendors: {
         Row: {
+          banner_image_url: string | null
           company_name: string
           created_at: string | null
           id: string
           niche: string | null
           pitch: string | null
+          preview_image_url: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
           website: string | null
         }
         Insert: {
+          banner_image_url?: string | null
           company_name: string
           created_at?: string | null
           id?: string
           niche?: string | null
           pitch?: string | null
+          preview_image_url?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
           website?: string | null
         }
         Update: {
+          banner_image_url?: string | null
           company_name?: string
           created_at?: string | null
           id?: string
           niche?: string | null
           pitch?: string | null
+          preview_image_url?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -327,6 +333,10 @@ export type Database = {
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      update_vendor_tags: {
+        Args: { vendor_id_param: string; tag_ids: string[] }
+        Returns: undefined
       }
     }
     Enums: {

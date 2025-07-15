@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Eye, Plus, X, Upload, Play } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Plus, X, Upload, Play, Image } from 'lucide-react';
 
 interface VendorProfile {
   id: string;
@@ -25,6 +25,8 @@ interface VendorProfile {
   founded_year?: number;
   team_size?: string;
   location?: string;
+  preview_image_url?: string;
+  banner_image_url?: string;
 }
 
 export default function VendorProfileEdit() {
@@ -58,6 +60,16 @@ export default function VendorProfileEdit() {
       
       setVendor(data as VendorProfile);
       form.reset(data as VendorProfile);
+
+      // Fetch vendor tags
+      const { data: vendorTags, error: tagsError } = await supabase
+        .from('vendor_tags')
+        .select('tag_id')
+        .eq('vendor_id', vendorId);
+
+      if (!tagsError && vendorTags) {
+        setSelectedTags(vendorTags.map(vt => vt.tag_id));
+      }
     } catch (error: any) {
       console.error('Error fetching vendor:', error);
       toast({
@@ -87,6 +99,7 @@ export default function VendorProfileEdit() {
   const onSubmit = async (data: VendorProfile) => {
     setSaving(true);
     try {
+      // Update vendor profile
       const { error } = await supabase
         .from('vendors')
         .update({
@@ -99,11 +112,21 @@ export default function VendorProfileEdit() {
           demo_video_url: data.demo_video_url,
           founded_year: data.founded_year,
           team_size: data.team_size,
-          location: data.location
+          location: data.location,
+          preview_image_url: data.preview_image_url,
+          banner_image_url: data.banner_image_url
         })
         .eq('id', vendorId);
 
       if (error) throw error;
+
+      // Update vendor tags
+      const { error: tagsError } = await supabase.rpc('update_vendor_tags', {
+        vendor_id_param: vendorId,
+        tag_ids: selectedTags
+      });
+
+      if (tagsError) throw tagsError;
 
       toast({
         title: "Success",
@@ -395,6 +418,70 @@ export default function VendorProfileEdit() {
 
                     <FormField
                       control={form.control}
+                      name="preview_image_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Marketplace Preview Image</FormLabel>
+                          <FormControl>
+                            <div className="flex space-x-2">
+                              <Input 
+                                placeholder="https://example.com/preview.jpg"
+                                {...field}
+                              />
+                              <Button type="button" variant="outline">
+                                <Image className="w-4 h-4 mr-2" />
+                                Upload
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                          {field.value && (
+                            <div className="mt-2">
+                              <img 
+                                src={field.value} 
+                                alt="Preview" 
+                                className="w-32 h-20 object-cover rounded border"
+                              />
+                            </div>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="banner_image_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Banner Image</FormLabel>
+                          <FormControl>
+                            <div className="flex space-x-2">
+                              <Input 
+                                placeholder="https://example.com/banner.jpg"
+                                {...field}
+                              />
+                              <Button type="button" variant="outline">
+                                <Image className="w-4 h-4 mr-2" />
+                                Upload
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                          {field.value && (
+                            <div className="mt-2">
+                              <img 
+                                src={field.value} 
+                                alt="Banner" 
+                                className="w-48 h-24 object-cover rounded border"
+                              />
+                            </div>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="demo_video_url"
                       render={({ field }) => (
                         <FormItem>
@@ -426,14 +513,14 @@ export default function VendorProfileEdit() {
                   <CardContent>
                     <div className="space-y-4">
                       <p className="text-sm text-gray-600">
-                        Select tags that describe your company and products
+                        Click to add/remove tags that describe this vendor
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {tags.map(tag => (
                           <Badge
                             key={tag.id}
                             variant={selectedTags.includes(tag.id) ? "default" : "outline"}
-                            className="cursor-pointer"
+                            className="cursor-pointer transition-all hover:scale-105"
                             style={{
                               backgroundColor: selectedTags.includes(tag.id) ? tag.color_hex : 'transparent',
                               color: selectedTags.includes(tag.id) ? 'white' : tag.color_hex,
@@ -442,9 +529,19 @@ export default function VendorProfileEdit() {
                             onClick={() => toggleTag(tag.id)}
                           >
                             {tag.name}
+                            {selectedTags.includes(tag.id) && (
+                              <X className="w-3 h-3 ml-1" />
+                            )}
                           </Badge>
                         ))}
                       </div>
+                      {selectedTags.length > 0 && (
+                        <div className="pt-2 border-t">
+                          <p className="text-sm text-gray-500">
+                            Selected tags: {selectedTags.length}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -480,24 +577,66 @@ export default function VendorProfileEdit() {
               </CardContent>
             </Card>
 
-            {/* Preview */}
+            {/* Marketplace Preview */}
             <Card>
               <CardHeader>
                 <CardTitle>Marketplace Preview</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    {vendor.logo_url ? (
-                      <img src={vendor.logo_url} alt="Logo" className="max-h-full max-w-full" />
-                    ) : (
-                      <div className="text-gray-400">Company Logo</div>
+                  <div className="border rounded-lg p-4 bg-white">
+                    {/* Preview Image */}
+                    {form.watch('preview_image_url') && (
+                      <div className="w-full h-48 bg-gray-200 rounded-lg mb-4 overflow-hidden">
+                        <img 
+                          src={form.watch('preview_image_url')} 
+                          alt="Preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     )}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{vendor.company_name}</h3>
-                    <p className="text-sm text-gray-600">{vendor.niche}</p>
-                    <p className="text-sm mt-2 line-clamp-3">{vendor.pitch}</p>
+                    
+                    <div className="flex items-start space-x-4">
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                        {form.watch('logo_url') ? (
+                          <img 
+                            src={form.watch('logo_url')} 
+                            alt="Logo" 
+                            className="w-12 h-12 object-contain"
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-500">Logo</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{form.watch('company_name') || 'Company Name'}</h3>
+                        <p className="text-gray-600 text-sm">{form.watch('niche') || 'Industry'}</p>
+                        <p className="text-gray-700 text-sm mt-2">
+                          {form.watch('pitch') || 'Company pitch will appear here...'}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {selectedTags.length > 0 ? (
+                            tags
+                              .filter(tag => selectedTags.includes(tag.id))
+                              .map(tag => (
+                                <Badge 
+                                  key={tag.id}
+                                  variant="secondary"
+                                  style={{ 
+                                    backgroundColor: tag.color_hex + '20',
+                                    color: tag.color_hex,
+                                    borderColor: tag.color_hex + '40'
+                                  }}
+                                >
+                                  {tag.name}
+                                </Badge>
+                              ))
+                          ) : (
+                            <Badge variant="secondary">No tags selected</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
