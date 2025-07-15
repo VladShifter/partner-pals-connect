@@ -1,6 +1,8 @@
 import { forwardRef, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface RichTextEditorProps {
   value: string;
@@ -9,26 +11,80 @@ interface RichTextEditorProps {
   className?: string;
 }
 
-const modules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    [{ 'indent': '-1'}, { 'indent': '+1' }],
-    ['link', 'blockquote'],
-    [{ 'align': [] }],
-    ['clean']
-  ],
-};
-
 const formats = [
   'header', 'bold', 'italic', 'underline', 'strike',
-  'list', 'bullet', 'indent', 'link', 'blockquote', 'align'
+  'list', 'bullet', 'indent', 'link', 'blockquote', 'align', 'image'
 ];
 
 const RichTextEditor = forwardRef<ReactQuill, RichTextEditorProps>(
   ({ value, onChange, placeholder, className }, ref) => {
     const quillRef = useRef<ReactQuill>(null);
+    const { toast } = useToast();
+
+    // Image upload handler
+    const imageHandler = () => {
+      const input = document.createElement('input');
+      input.setAttribute('type', 'file');
+      input.setAttribute('accept', 'image/*');
+      input.click();
+
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        try {
+          // Upload image to Supabase storage
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const { data, error } = await supabase.storage
+            .from('editor-images')
+            .upload(fileName, file);
+
+          if (error) throw error;
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('editor-images')
+            .getPublicUrl(fileName);
+
+          // Insert image into editor
+          const quill = quillRef.current?.getEditor();
+          if (quill) {
+            const range = quill.getSelection();
+            quill.insertEmbed(range?.index || 0, 'image', publicUrl);
+          }
+
+          toast({
+            title: "Изображение загружено",
+            description: "Изображение успешно добавлено в текст",
+          });
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          toast({
+            title: "Ошибка загрузки",
+            description: "Не удалось загрузить изображение",
+            variant: "destructive",
+          });
+        }
+      };
+    };
+
+    const modules = {
+      toolbar: {
+        container: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'indent': '-1'}, { 'indent': '+1' }],
+          ['link', 'image', 'blockquote'],
+          [{ 'align': [] }],
+          ['clean']
+        ],
+        handlers: {
+          image: imageHandler
+        }
+      }
+    };
 
     useEffect(() => {
       if (ref && typeof ref === 'object') {
