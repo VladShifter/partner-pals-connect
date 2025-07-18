@@ -221,8 +221,7 @@ const ProductDetail = () => {
 
             {/* ROI Calculator */}
             <ROICalculator 
-              commissionRate={product.commission_rate || 25}
-              monthlyFee={99}
+              product={product}
             />
 
             {/* What are you reselling */}

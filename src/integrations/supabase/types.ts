@@ -215,6 +215,9 @@ export type Database = {
           name: string
           price: number | null
           reseller_benefits: string[] | null
+          roi_default_deal_value: number | null
+          roi_default_deals_per_month: number | null
+          roi_monthly_fee: number | null
           setup_fee: number | null
           status: string | null
           updated_at: string | null
@@ -235,6 +238,9 @@ export type Database = {
           name: string
           price?: number | null
           reseller_benefits?: string[] | null
+          roi_default_deal_value?: number | null
+          roi_default_deals_per_month?: number | null
+          roi_monthly_fee?: number | null
           setup_fee?: number | null
           status?: string | null
           updated_at?: string | null
@@ -255,6 +261,9 @@ export type Database = {
           name?: string
           price?: number | null
           reseller_benefits?: string[] | null
+          roi_default_deal_value?: number | null
+          roi_default_deals_per_month?: number | null
+          roi_monthly_fee?: number | null
           setup_fee?: number | null
           status?: string | null
           updated_at?: string | null

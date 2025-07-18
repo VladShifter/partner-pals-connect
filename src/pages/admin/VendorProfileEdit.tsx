@@ -32,6 +32,27 @@ interface VendorProfile {
   banner_image_url?: string;
 }
 
+interface ProductData {
+  id?: string;
+  name: string;
+  description: string;
+  price: number | null;
+  commission_rate: number | null;
+  status: string;
+  features: string[];
+  reseller_benefits: string[];
+  ideal_resellers: string[];
+  getting_customers: string[];
+  launch_steps: string[];
+  annual_income_potential?: number | null;
+  average_deal_size?: number | null;
+  setup_fee?: number | null;
+  build_from_scratch_cost?: number | null;
+  roi_default_deals_per_month?: number;
+  roi_default_deal_value?: number;
+  roi_monthly_fee?: number;
+}
+
 export default function VendorProfileEdit() {
   const { vendorId } = useParams();
   const navigate = useNavigate();

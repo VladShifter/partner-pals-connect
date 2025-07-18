@@ -4,24 +4,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calculator, TrendingUp } from 'lucide-react';
 
+interface Product {
+  commission_rate?: number;
+  roi_default_deals_per_month?: number;
+  roi_default_deal_value?: number;
+  roi_monthly_fee?: number;
+}
+
 interface ROICalculatorProps {
   commissionRate?: number;
   monthlyFee?: number;
+  product?: Product;
 }
 
 export const ROICalculator: React.FC<ROICalculatorProps> = ({ 
   commissionRate = 25, 
-  monthlyFee = 99 
+  monthlyFee = 99,
+  product
 }) => {
   const [calculatorValues, setCalculatorValues] = useState({
-    dealsPerMonth: 5,
-    averageDealValue: 1000
+    dealsPerMonth: product?.roi_default_deals_per_month || 5,
+    averageDealValue: product?.roi_default_deal_value || 1000
   });
+
+  const effectiveCommissionRate = product?.commission_rate || commissionRate;
+  const effectiveMonthlyFee = product?.roi_monthly_fee || monthlyFee;
 
   const calculateEarnings = () => {
     const monthlyRevenue = calculatorValues.dealsPerMonth * calculatorValues.averageDealValue;
-    const monthlyCommission = (monthlyRevenue * commissionRate) / 100;
-    const monthlyCosts = monthlyFee;
+    const monthlyCommission = (monthlyRevenue * effectiveCommissionRate) / 100;
+    const monthlyCosts = effectiveMonthlyFee;
     const monthlyProfit = monthlyCommission - monthlyCosts;
     const annualProfit = monthlyProfit * 12;
 
