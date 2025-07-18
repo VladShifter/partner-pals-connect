@@ -363,6 +363,7 @@ const ProductDetail = () => {
                 <PricingTiersSection 
                   productId={product.id} 
                   setupFee={product.setup_fee}
+                  sidebarOnly={true}
                 />
 
                 {/* Key Metrics */}

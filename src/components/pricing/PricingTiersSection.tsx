@@ -20,11 +20,13 @@ interface PricingTier {
 interface PricingTiersSectionProps {
   productId: string;
   setupFee?: number;
+  sidebarOnly?: boolean;
 }
 
 export const PricingTiersSection: React.FC<PricingTiersSectionProps> = ({ 
   productId, 
-  setupFee 
+  setupFee,
+  sidebarOnly = false 
 }) => {
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
   const [selectedTier, setSelectedTier] = useState<PricingTier | null>(null);
@@ -90,26 +92,36 @@ export const PricingTiersSection: React.FC<PricingTiersSectionProps> = ({
     ? `$${Math.min(...pricingTiers.map(t => t.monthly_fee))} - $${Math.max(...pricingTiers.map(t => t.monthly_fee))}/month`
     : `$${pricingTiers[0].monthly_fee}/month`;
 
-  return (
-    <>
-      {/* Sidebar Summary */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground">Monthly License</span>
-        </div>
-        <div className="text-lg font-semibold">{priceRange}</div>
-        <div className="text-sm text-muted-foreground mt-1">
-          {pricingTiers.length > 1 ? 'Various commission rates available' : `${pricingTiers[0].commission_rate}% commission`}
+  // If sidebar only, return compact version
+  if (sidebarOnly) {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Monthly License</span>
+            <span className="font-bold">{priceRange}</span>
+          </div>
+          {setupFee && setupFee > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Setup Fee</span>
+              <span className="font-medium">${setupFee.toLocaleString()}</span>
+            </div>
+          )}
         </div>
         <Button 
           variant="outline" 
           size="sm" 
+          className="w-full"
           onClick={scrollToSection}
-          className="mt-2 w-full"
         >
           View Full Pricing
         </Button>
       </div>
+    );
+  }
+
+  return (
+    <>
 
       {/* Full Pricing Section */}
       <Card id="pricing-tiers-section" className="scroll-mt-8">
