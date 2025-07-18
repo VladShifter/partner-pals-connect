@@ -14,6 +14,7 @@ import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Ca
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
+import { ROICalculator } from "@/components/ROICalculator";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -217,6 +218,12 @@ const ProductDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* ROI Calculator */}
+            <ROICalculator 
+              commissionRate={product.commission_rate || 25}
+              monthlyFee={99}
+            />
 
             {/* What are you reselling */}
             <Card>
