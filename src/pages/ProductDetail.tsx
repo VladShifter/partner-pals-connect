@@ -218,12 +218,6 @@ const ProductDetail = () => {
               </Card>
             )}
 
-            {/* Pricing Tiers Section */}
-            <PricingTiersSection 
-              productId={product.id} 
-              setupFee={product.setup_fee}
-            />
-
             {/* What are you reselling */}
             <Card>
               <CardHeader>
@@ -343,6 +337,12 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
+            {/* Pricing Tiers Section - at the bottom */}
+            <PricingTiersSection 
+              productId={product.id} 
+              setupFee={product.setup_fee}
+            />
+
           </div>
 
           {/* Fixed Sidebar */}
@@ -359,15 +359,8 @@ const ProductDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Pricing Tiers Summary */}
-                <PricingTiersSection 
-                  productId={product.id} 
-                  setupFee={product.setup_fee}
-                  sidebarOnly={true}
-                />
-
                 {/* Key Metrics */}
-                <div className="space-y-3 pt-4 border-t">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Annual Income Potential</span>
                     <span className="font-bold text-green-600 text-lg">
@@ -385,6 +378,28 @@ const ProductDetail = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* Income Information */}
+                <div className="bg-primary/10 rounded-lg p-4">
+                  <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-primary/80">Minimum result:</span>
+                      <span className="font-medium text-primary">$2,500/mo</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-primary/80">Best Result for now:</span>
+                      <span className="font-medium text-primary">$36,000/mo</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing Tiers Summary */}
+                <PricingTiersSection 
+                  productId={product.id} 
+                  setupFee={product.setup_fee}
+                  sidebarOnly={true}
+                />
 
                 {/* Value Propositions */}
                 <div className="space-y-2 pt-4 border-t">
@@ -408,21 +423,6 @@ const ProductDetail = () => {
                     <Badge variant="secondary" className="text-xs flex items-center gap-1">
                       🔄 100% Refund
                     </Badge>
-                  </div>
-                </div>
-
-                {/* Income Information */}
-                <div className="bg-primary/10 rounded-lg p-4">
-                  <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-primary/80">Minimum result:</span>
-                      <span className="font-medium text-primary">$2,500/mo</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-primary/80">Best Result for now:</span>
-                      <span className="font-medium text-primary">$36,000/mo</span>
-                    </div>
                   </div>
                 </div>
 
