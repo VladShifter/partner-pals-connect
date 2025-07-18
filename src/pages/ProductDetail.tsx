@@ -187,10 +187,16 @@ const ProductDetail = () => {
                   ))}
                 </div>
 
-                <div className="flex space-x-4">
-                  <Button onClick={handleStartChat} size="lg">
+                <div className="flex gap-3">
+                  <Button onClick={handleStartChat} size="lg" className="flex-1">
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Apply
+                  </Button>
+                  <Button variant="outline" size="lg" className="flex-1" asChild>
+                    <a href={vendor?.website_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Перейти на сайт
+                    </a>
                   </Button>
                 </div>
               </CardContent>
