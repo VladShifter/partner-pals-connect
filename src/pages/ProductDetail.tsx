@@ -197,16 +197,16 @@ const ProductDetail = () => {
             </Card>
 
             {/* Demo Video */}
-            {vendor?.demo_video_file_url && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Product Demo</CardTitle>
-                  <CardDescription>
-                    See how the platform works in action
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-video rounded-lg overflow-hidden">
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Demo</CardTitle>
+                <CardDescription>
+                  See how the platform works in action
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  {vendor?.demo_video_file_url ? (
                     <video
                       src={vendor.demo_video_file_url}
                       controls
@@ -214,10 +214,21 @@ const ProductDetail = () => {
                     >
                       Your browser does not support the video tag.
                     </video>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  ) : (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                      title="Product Demo"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* ROI Calculator */}
             <ROICalculator 
