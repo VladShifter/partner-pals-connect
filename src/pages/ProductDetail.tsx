@@ -442,40 +442,63 @@ const ProductDetail = () => {
 
           {/* Fixed Sidebar */}
           <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
-            {/* Vendor Info */}
+            {/* Reseller Opportunity Info */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Building className="w-5 h-5 mr-2" />
-                  Vendor Information
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  Reseller Opportunity
                 </CardTitle>
+                <CardDescription>
+                  Start earning with {product?.name}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-lg">{vendor?.company_name || 'Unknown Vendor'}</h4>
-                  <p className="text-muted-foreground">{vendor?.description || vendor?.pitch || 'No description available'}</p>
+                {/* Key Metrics */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Earn per sale</span>
+                    <span className="font-bold text-green-600 text-lg">
+                      ${product?.price && product?.commission_rate ? Math.round((product.price * product.commission_rate) / 100) : 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Setup fee</span>
+                    <span className="font-medium">$990</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Build from scratch</span>
+                    <span className="font-medium text-red-600">$80,000+</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Commission</span>
+                    <span className="font-medium text-green-600">{product?.commission_rate}%</span>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-muted-foreground">Founded</span>
-                    <p className="font-medium">{vendor?.founded_year || 'N/A'}</p>
+                {/* Value Propositions */}
+                <div className="space-y-2 pt-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Easy Start
+                    </Badge>
                   </div>
-                  <div>
-                    <span className="text-sm text-muted-foreground">Team Size</span>
-                    <p className="font-medium">{vendor?.team_size || 'N/A'}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      🛡️ Zero Risk
+                    </Badge>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  {vendor?.website && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={vendor.website} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Visit Website
-                      </a>
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      💰 High Margin
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      🔄 100% Refund
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Income Information */}
@@ -484,11 +507,11 @@ const ProductDetail = () => {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-primary/80">Minimum result:</span>
-                      <span className="font-medium text-primary">$7,800/mo</span>
+                      <span className="font-medium text-primary">$2,500/mo</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-primary/80">Best Result for now:</span>
-                      <span className="font-medium text-primary">$56,000/mo</span>
+                      <span className="font-medium text-primary">$36,000/mo</span>
                     </div>
                   </div>
                 </div>
