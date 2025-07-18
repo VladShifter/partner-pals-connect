@@ -457,22 +457,22 @@ const ProductDetail = () => {
                 {/* Key Metrics */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Earn per sale</span>
+                    <span className="text-muted-foreground">Annual Income Potential</span>
                     <span className="font-bold text-green-600 text-lg">
-                      ${product?.price && product?.commission_rate ? Math.round((product.price * product.commission_rate) / 100) : 0}
+                      ${product?.annual_income_potential?.toLocaleString() || 'N/A'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Average Deal Size</span>
+                    <span className="font-medium">${product?.average_deal_size?.toLocaleString() || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Setup fee</span>
-                    <span className="font-medium">$990</span>
+                    <span className="font-medium">${product?.setup_fee?.toLocaleString() || 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Build from scratch</span>
-                    <span className="font-medium text-red-600">$80,000+</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Commission</span>
-                    <span className="font-medium text-green-600">{product?.commission_rate}%</span>
+                    <span className="font-medium text-red-600">${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}</span>
                   </div>
                 </div>
 

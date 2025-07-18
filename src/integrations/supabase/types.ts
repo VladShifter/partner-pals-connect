@@ -154,6 +154,9 @@ export type Database = {
       }
       products: {
         Row: {
+          annual_income_potential: number | null
+          average_deal_size: number | null
+          build_from_scratch_cost: number | null
           commission_rate: number | null
           created_at: string | null
           description: string | null
@@ -165,11 +168,15 @@ export type Database = {
           name: string
           price: number | null
           reseller_benefits: string[] | null
+          setup_fee: number | null
           status: string | null
           updated_at: string | null
           vendor_id: string | null
         }
         Insert: {
+          annual_income_potential?: number | null
+          average_deal_size?: number | null
+          build_from_scratch_cost?: number | null
           commission_rate?: number | null
           created_at?: string | null
           description?: string | null
@@ -181,11 +188,15 @@ export type Database = {
           name: string
           price?: number | null
           reseller_benefits?: string[] | null
+          setup_fee?: number | null
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
         }
         Update: {
+          annual_income_potential?: number | null
+          average_deal_size?: number | null
+          build_from_scratch_cost?: number | null
           commission_rate?: number | null
           created_at?: string | null
           description?: string | null
@@ -197,6 +208,7 @@ export type Database = {
           name?: string
           price?: number | null
           reseller_benefits?: string[] | null
+          setup_fee?: number | null
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null

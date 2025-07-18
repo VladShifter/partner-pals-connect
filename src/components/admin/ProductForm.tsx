@@ -23,6 +23,10 @@ interface ProductFormData {
   ideal_resellers: string[];
   getting_customers: string[];
   launch_steps: string[];
+  annual_income_potential?: number | null;
+  average_deal_size?: number | null;
+  setup_fee?: number | null;
+  build_from_scratch_cost?: number | null;
 }
 
 interface ProductFormProps {
@@ -50,7 +54,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
       reseller_benefits: [''],
       ideal_resellers: [''],
       getting_customers: [''],
-      launch_steps: ['']
+      launch_steps: [''],
+      annual_income_potential: null,
+      average_deal_size: null,
+      setup_fee: null,
+      build_from_scratch_cost: null
     }
   });
 
@@ -141,7 +149,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
       reseller_benefits: data.reseller_benefits && data.reseller_benefits.length > 0 ? data.reseller_benefits : [''],
       ideal_resellers: data.ideal_resellers && data.ideal_resellers.length > 0 ? data.ideal_resellers : [''],
       getting_customers: data.getting_customers && data.getting_customers.length > 0 ? data.getting_customers : [''],
-      launch_steps: data.launch_steps && data.launch_steps.length > 0 ? data.launch_steps : ['']
+      launch_steps: data.launch_steps && data.launch_steps.length > 0 ? data.launch_steps : [''],
+      annual_income_potential: data.annual_income_potential,
+      average_deal_size: data.average_deal_size,
+      setup_fee: data.setup_fee,
+      build_from_scratch_cost: data.build_from_scratch_cost
     });
   };
 
@@ -396,6 +408,89 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
                         <option value="approved">Approved</option>
                         <option value="rejected">Rejected</option>
                       </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Reseller Income Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="annual_income_potential"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Annual Income Potential ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="150000"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="average_deal_size"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Average Deal Size ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="5000"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="setup_fee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Setup Fee ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="990"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="build_from_scratch_cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Build from Scratch Cost ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="80000"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
