@@ -379,7 +379,9 @@ const ProductDetail = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Build from scratch</span>
-                    <span className="font-medium text-red-600">${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}</span>
+                    <span className="font-medium text-red-600 line-through decoration-2">
+                      ${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}
+                    </span>
                   </div>
                 </div>
 

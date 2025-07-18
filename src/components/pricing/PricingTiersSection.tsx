@@ -98,6 +98,9 @@ export const PricingTiersSection: React.FC<PricingTiersSectionProps> = ({
           <span className="text-sm font-medium text-muted-foreground">Monthly License</span>
         </div>
         <div className="text-lg font-semibold">{priceRange}</div>
+        <div className="text-sm text-muted-foreground mt-1">
+          {pricingTiers.length > 1 ? 'Various commission rates available' : `${pricingTiers[0].commission_rate}% commission`}
+        </div>
         <Button 
           variant="outline" 
           size="sm" 
