@@ -119,6 +119,53 @@ export type Database = {
           },
         ]
       }
+      product_pricing_tiers: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          description: string | null
+          id: string
+          is_most_popular: boolean
+          monthly_fee: number
+          product_id: string | null
+          tier_name: string
+          tier_order: number
+          updated_at: string
+        }
+        Insert: {
+          commission_rate: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_most_popular?: boolean
+          monthly_fee?: number
+          product_id?: string | null
+          tier_name: string
+          tier_order?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_most_popular?: boolean
+          monthly_fee?: number
+          product_id?: string | null
+          tier_name?: string
+          tier_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_pricing_tiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_tags: {
         Row: {
           id: string

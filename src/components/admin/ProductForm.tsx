@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, X } from 'lucide-react';
+import { PricingTiersManager } from './PricingTiersManager';
 
 interface ProductFormData {
   name: string;
@@ -514,6 +515,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
             </div>
           </form>
         </Form>
+
+        {/* Pricing Tiers Manager - Show only for existing products */}
+        {(currentProduct?.id || productId) && (
+          <div className="mt-8">
+            <PricingTiersManager productId={currentProduct?.id || productId} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

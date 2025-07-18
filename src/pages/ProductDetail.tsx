@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -217,107 +218,11 @@ const ProductDetail = () => {
               </Card>
             )}
 
-            {/* Partnership Terms & Calculator - Moved up here */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2" />
-                  Partnership Opportunities
-                </CardTitle>
-                <CardDescription>
-                  Available partnership models and earnings calculator
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue={Object.keys(partner_terms)[0]} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    {Object.keys(partner_terms).map(type => (
-                      <TabsTrigger key={type} value={type}>
-                        {formatPartnerType(type)}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  
-                  {Object.entries(partner_terms).map(([type, terms]) => (
-                    <TabsContent key={type} value={type} className="mt-4">
-                      <div className="bg-accent rounded-lg p-4 mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-lg">{formatPartnerType(type)}</h4>
-                          <Badge variant="outline" className="text-lg px-3 py-1">
-                            {type === 'white_label' 
-                              ? 'Up to 300% margin rate' 
-                              : `${terms.margin_pct}% Commission`
-                            }
-                          </Badge>
-                        </div>
-                        <p className="text-muted-foreground">{terms.notes}</p>
-                      </div>
-
-                      {/* Earnings Calculator */}
-                      <div className="bg-card border rounded-lg p-4">
-                        <h4 className="font-semibold text-lg mb-4 flex items-center">
-                          <Calculator className="w-5 h-5 mr-2" />
-                          Earnings Calculator
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <div>
-                            <Label htmlFor="deal-price">Average Deal Price ($)</Label>
-                            <Input
-                              id="deal-price"
-                              type="number"
-                              value={calculatorValues.price}
-                              onChange={(e) => setCalculatorValues({...calculatorValues, price: parseInt(e.target.value) || 0})}
-                              className="mt-1"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="deals-per-month">Deals per Month</Label>
-                            <Input
-                              id="deals-per-month"
-                              type="number"
-                              value={calculatorValues.deals}
-                              onChange={(e) => setCalculatorValues({...calculatorValues, deals: parseInt(e.target.value) || 0})}
-                              className="mt-1"
-                            />
-                          </div>
-                          <div>
-                            <Label>{type === 'white_label' ? 'Your Margin (%)' : 'Commission Rate'}</Label>
-                            {type === 'white_label' ? (
-                              <Input
-                                type="number"
-                                value={calculatorValues.margin}
-                                onChange={(e) => setCalculatorValues({...calculatorValues, margin: parseInt(e.target.value) || 0})}
-                                className="mt-1"
-                                placeholder="Enter margin %"
-                                min="0"
-                                max="300"
-                              />
-                            ) : (
-                              <div className="mt-1 p-2 bg-muted rounded text-center font-medium">
-                                {terms.margin_pct}%
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="bg-primary/10 rounded-lg p-4">
-                          <div className="text-center">
-                            <div className="text-sm text-muted-foreground mb-1">Estimated Annual Earnings</div>
-                            <div className="text-2xl font-bold text-primary">
-                              ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct) * 12) / 100).toLocaleString()}
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Monthly: ${((calculatorValues.price * calculatorValues.deals * (type === 'white_label' ? calculatorValues.margin : terms.margin_pct)) / 100).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </CardContent>
-            </Card>
+            {/* Pricing Tiers Section */}
+            <PricingTiersSection 
+              productId={product.id} 
+              setupFee={product.setup_fee}
+            />
 
             {/* What are you reselling */}
             <Card>
@@ -454,8 +359,14 @@ const ProductDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Pricing Tiers Summary */}
+                <PricingTiersSection 
+                  productId={product.id} 
+                  setupFee={product.setup_fee}
+                />
+
                 {/* Key Metrics */}
-                <div className="space-y-3">
+                <div className="space-y-3 pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Annual Income Potential</span>
                     <span className="font-bold text-green-600 text-lg">
@@ -465,10 +376,6 @@ const ProductDetail = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Average Deal Size</span>
                     <span className="font-medium">${product?.average_deal_size?.toLocaleString() || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Setup fee</span>
-                    <span className="font-medium">${product?.setup_fee?.toLocaleString() || 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Build from scratch</span>
