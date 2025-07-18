@@ -178,13 +178,24 @@ const ProductDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {/* Mock tags for now - should come from product_tags table */}
-                  {["CRM", "SaaS", "Automation", "Analytics", "AI", "Sales"].map(tag => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
+                <div className="space-y-3 mb-6">
+                  {/* Key reasons to become a partner */}
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary" />
+                    <span className="font-medium">Easy to Start</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary" />
+                    <span className="font-medium">Zero Risk Investment</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary" />
+                    <span className="font-medium">High Profit Margins</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary" />
+                    <span className="font-medium">100% Money Back Guarantee</span>
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
