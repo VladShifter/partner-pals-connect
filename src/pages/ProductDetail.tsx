@@ -188,14 +188,14 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button onClick={handleStartChat} size="lg" className="flex-1">
+                  <Button onClick={handleStartChat} size="lg">
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    Apply
+                    Apply Now
                   </Button>
-                  <Button variant="outline" size="lg" className="flex-1" asChild>
+                  <Button variant="outline" size="lg" asChild>
                     <a href={vendor?.website_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Перейти на сайт
+                      Visit Website
                     </a>
                   </Button>
                 </div>
