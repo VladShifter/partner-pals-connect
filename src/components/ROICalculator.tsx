@@ -80,33 +80,33 @@ export const ROICalculator: React.FC<ROICalculatorProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-muted/30 border-muted">
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-sm text-green-600 mb-1">Monthly Revenue</div>
-                <div className="text-xl font-bold text-green-700">
+                <div className="text-sm text-muted-foreground mb-1">Monthly Revenue</div>
+                <div className="text-xl font-bold">
                   ${earnings.monthlyRevenue.toLocaleString()}
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-muted/30 border-muted">
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-sm text-blue-600 mb-1">Monthly Commission</div>
-                <div className="text-xl font-bold text-blue-700">
+                <div className="text-sm text-muted-foreground mb-1">Monthly Commission</div>
+                <div className="text-xl font-bold">
                   ${earnings.monthlyCommission.toLocaleString()}
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-orange-50 border-orange-200">
+          <Card className="bg-muted/30 border-muted">
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-sm text-orange-600 mb-1">Monthly Costs</div>
-                <div className="text-xl font-bold text-orange-700">
+                <div className="text-sm text-muted-foreground mb-1">Monthly Costs</div>
+                <div className="text-xl font-bold">
                   ${earnings.monthlyCosts.toLocaleString()}
                 </div>
               </div>
@@ -114,17 +114,17 @@ export const ROICalculator: React.FC<ROICalculatorProps> = ({
           </Card>
         </div>
 
-        <Card className="mt-4 bg-primary/10 border-primary/20">
+        <Card className="mt-4 bg-green-50 border-green-200">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="w-5 h-5 text-primary mr-2" />
-                <span className="text-sm font-medium text-primary">Net Profit</span>
+                <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
+                <span className="text-sm font-medium text-green-600">Net Profit</span>
               </div>
-              <div className="text-2xl font-bold text-primary mb-1">
+              <div className="text-2xl font-bold text-green-700 mb-1">
                 ${earnings.monthlyProfit.toLocaleString()}/month
               </div>
-              <div className="text-lg text-primary/80">
+              <div className="text-lg text-green-600">
                 ${earnings.annualProfit.toLocaleString()}/year
               </div>
             </div>
