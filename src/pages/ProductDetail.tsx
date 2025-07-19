@@ -225,18 +225,6 @@ const ProductDetail = () => {
                 </div>
                 <CardTitle className="text-3xl">{product.name}</CardTitle>
                 
-                {/* Featured Tags Display */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {[...featuredTags, ...getRangeTags()].slice(0, 6).map((tag, index) => (
-                    <Badge 
-                      key={tag.id || `range-${index}`}
-                      className="text-sm text-white border-0 font-medium"
-                      style={{ backgroundColor: tag.color_hex }}
-                    >
-                      {tag.name}
-                    </Badge>
-                  ))}
-                </div>
 
                 <CardDescription className="text-lg">
                   {product.description || 'No description available'}
