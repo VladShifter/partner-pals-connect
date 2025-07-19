@@ -87,7 +87,8 @@ const Marketplace = () => {
           image: getProductImage(product.vendors?.niche),
           commission_rate: product.commission_rate,
           average_deal_size: product.average_deal_size,
-          annual_income_potential: product.annual_income_potential
+          annual_income_potential: product.annual_income_potential,
+          setup_fee: product.setup_fee
         };
       });
 
@@ -137,7 +138,28 @@ const Marketplace = () => {
     Object.entries(tagsByCategory).filter(([category]) => !basicCategories.includes(category))
   );
 
+  // Monthly earning ranges
+  const monthlyEarningRanges = [
+    { label: '$1,000+ / month', min: 12000 },
+    { label: '$5,000+ / month', min: 60000 },
+    { label: '$10,000+ / month', min: 120000 },
+    { label: '$30,000+ / month', min: 360000 },
+    { label: '$50,000+ / month', min: 600000 }
+  ];
+
+  // Setup fee ranges
+  const setupFeeRanges = [
+    { label: 'Free ($0)', min: 0, max: 0 },
+    { label: 'Low ($1-$499)', min: 1, max: 499 },
+    { label: 'Medium ($500-$999)', min: 500, max: 999 },
+    { label: 'High ($1,000+)', min: 1000, max: Infinity }
+  ];
+
   const partnerSubtypes = ["white_label", "reseller", "affiliate"];
+
+  // Additional filter state
+  const [selectedEarningRange, setSelectedEarningRange] = useState<string>("");
+  const [selectedSetupFeeRange, setSelectedSetupFeeRange] = useState<string>("");
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
@@ -152,7 +174,17 @@ const Marketplace = () => {
     const matchesSubtypes = selectedSubtypes.length === 0 || 
       selectedSubtypes.some(subtype => product.partner_terms[subtype]);
 
-    return matchesSearch && matchesTags && matchesSubtypes;
+    const matchesEarningRange = !selectedEarningRange || 
+      (product.annual_income_potential && 
+       product.annual_income_potential >= monthlyEarningRanges.find(r => r.label === selectedEarningRange)?.min);
+
+    const matchesSetupFeeRange = !selectedSetupFeeRange || (() => {
+      const range = setupFeeRanges.find(r => r.label === selectedSetupFeeRange);
+      const fee = product.setup_fee || 0;
+      return range && fee >= range.min && fee <= range.max;
+    })();
+
+    return matchesSearch && matchesTags && matchesSubtypes && matchesEarningRange && matchesSetupFeeRange;
   });
 
   const toggleTag = (tag: string) => {
@@ -174,6 +206,8 @@ const Marketplace = () => {
   const clearFilters = () => {
     setSelectedTags([]);
     setSelectedSubtypes([]);
+    setSelectedEarningRange("");
+    setSelectedSetupFeeRange("");
     setSearchQuery("");
     setSearchParams({});
   };
@@ -274,11 +308,30 @@ const Marketplace = () => {
                     );
                   })}
 
+                  {/* Monthly Earning Filter */}
+                  <div className="min-w-[200px]">
+                    <Select
+                      value={selectedEarningRange}
+                      onValueChange={setSelectedEarningRange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Monthly Earning" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthlyEarningRanges.map((range) => (
+                          <SelectItem key={range.label} value={range.label}>
+                            {range.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Clear Filters Button */}
-                  {(selectedTags.length > 0 || selectedSubtypes.length > 0) && (
+                  {(selectedTags.length > 0 || selectedSubtypes.length > 0 || selectedEarningRange || selectedSetupFeeRange) && (
                     <Button variant="outline" size="sm" onClick={clearFilters}>
                       <X className="w-4 h-4 mr-2" />
-                      Clear Filters ({selectedTags.length + selectedSubtypes.length})
+                      Clear Filters ({selectedTags.length + selectedSubtypes.length + (selectedEarningRange ? 1 : 0) + (selectedSetupFeeRange ? 1 : 0)})
                     </Button>
                   )}
                 </div>
@@ -288,7 +341,7 @@ const Marketplace = () => {
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="flex items-center gap-2">
                       <Settings className="w-4 h-4" />
-                      Продвинутые опции
+                      Advanced Filters
                       <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                     </Button>
                   </CollapsibleTrigger>
@@ -330,13 +383,32 @@ const Marketplace = () => {
                           </div>
                         );
                       })}
+                      
+                      {/* Setup Fee Filter */}
+                      <div className="min-w-[200px]">
+                        <Select
+                          value={selectedSetupFeeRange}
+                          onValueChange={setSelectedSetupFeeRange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Setup Fee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {setupFeeRanges.map((range) => (
+                              <SelectItem key={range.label} value={range.label}>
+                                {range.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
               </div>
 
               {/* Selected Filters Display */}
-              {(selectedTags.length > 0 || selectedSubtypes.length > 0) && (
+              {(selectedTags.length > 0 || selectedSubtypes.length > 0 || selectedEarningRange || selectedSetupFeeRange) && (
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex flex-wrap gap-2">
                     {selectedTags.map(tag => (
@@ -361,6 +433,26 @@ const Marketplace = () => {
                         <X className="w-3 h-3 ml-1" />
                       </Badge>
                     ))}
+                    {selectedEarningRange && (
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer"
+                        onClick={() => setSelectedEarningRange("")}
+                      >
+                        {selectedEarningRange}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    )}
+                    {selectedSetupFeeRange && (
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer"
+                        onClick={() => setSelectedSetupFeeRange("")}
+                      >
+                        {selectedSetupFeeRange}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    )}
                   </div>
                 </div>
               )}
