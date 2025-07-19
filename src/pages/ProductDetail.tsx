@@ -178,6 +178,13 @@ const ProductDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Extended Description */}
+                <div className="mb-6 p-4 bg-muted/30 rounded-lg">
+                  <p className="text-sm leading-relaxed">
+                    Start a thriving e-learning business under your own brand with zero hassle. Our fully white-label AI training platform lets you offer corporate learning solutions without managing content creation, assessment development, or support—we handle it all. Focus on growing your profits and brand!
+                  </p>
+                </div>
+
                 {/* Clean Overview */}
                 <div className="space-y-4 mb-6">
                   {/* Partner Types - Simple text with dots */}
