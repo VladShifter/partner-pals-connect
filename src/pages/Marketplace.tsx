@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, Grid, List, X, ChevronDown } from "lucide-react";
+import { Search, Filter, Grid, List, X, ChevronDown, Settings } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Marketplace = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,6 +21,7 @@ const Marketplace = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [allTags, setAllTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -125,6 +127,16 @@ const Marketplace = () => {
     return acc;
   }, {} as Record<string, any[]>);
 
+  // Basic filter categories
+  const basicCategories = ['Business Model', 'Customer Segments', 'Industries', 'Partnership Types'];
+  const basicTags = Object.fromEntries(
+    Object.entries(tagsByCategory).filter(([category]) => basicCategories.includes(category))
+  );
+  
+  const advancedTags = Object.fromEntries(
+    Object.entries(tagsByCategory).filter(([category]) => !basicCategories.includes(category))
+  );
+
   const partnerSubtypes = ["white_label", "reseller", "affiliate"];
 
   const filteredProducts = products.filter(product => {
@@ -222,83 +234,105 @@ const Marketplace = () => {
 
             {/* Filter Dropdowns */}
             <Card className="p-4">
-              <div className="flex flex-wrap gap-4 items-center">
-                {/* Category-based Tag Filters */}
-                {Object.entries(tagsByCategory).map(([category, tags]) => {
-                  const categoryTags = tags as any[];
-                  return (
-                    <div key={category} className="min-w-[200px]">
-                      <Select
-                        value={selectedTags.find(tag => categoryTags.some((t: any) => t.name === tag)) || ""}
-                        onValueChange={(value) => {
-                          if (value) {
-                            toggleTag(value);
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={`${category} (${selectedTags.filter(tag => categoryTags.some((t: any) => t.name === tag)).length})`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryTags.map((tag: any) => (
-                            <SelectItem 
-                              key={tag.id} 
-                              value={tag.name}
-                              className={selectedTags.includes(tag.name) ? "bg-primary/10" : ""}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span>{tag.name}</span>
-                                {selectedTags.includes(tag.name) && (
-                                  <X className="w-3 h-3 ml-2" />
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  );
-                })}
-
-                {/* Partner Types Filter */}
-                <div className="min-w-[150px]">
-                  <Select
-                    value={selectedSubtypes[0] || ""}
-                    onValueChange={(value) => {
-                      if (value) {
-                        toggleSubtype(value);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={`Partner Type (${selectedSubtypes.length})`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {partnerSubtypes.map(subtype => (
-                        <SelectItem 
-                          key={subtype} 
-                          value={subtype}
-                          className={selectedSubtypes.includes(subtype) ? "bg-primary/10" : ""}
+              <div className="space-y-4">
+                {/* Basic Filters */}
+                <div className="flex flex-wrap gap-4 items-center">
+                  {/* Basic Category Filters */}
+                  {Object.entries(basicTags).map(([category, tags]) => {
+                    const categoryTags = tags as any[];
+                    return (
+                      <div key={category} className="min-w-[200px]">
+                        <Select
+                          value={selectedTags.find(tag => categoryTags.some((t: any) => t.name === tag)) || ""}
+                          onValueChange={(value) => {
+                            if (value) {
+                              toggleTag(value);
+                            }
+                          }}
                         >
-                          <div className="flex items-center justify-between w-full">
-                            <span>{subtype.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                            {selectedSubtypes.includes(subtype) && (
-                              <X className="w-3 h-3 ml-2" />
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={`${category} (${selectedTags.filter(tag => categoryTags.some((t: any) => t.name === tag)).length})`} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categoryTags.map((tag: any) => (
+                              <SelectItem 
+                                key={tag.id} 
+                                value={tag.name}
+                                className={selectedTags.includes(tag.name) ? "bg-primary/10" : ""}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{tag.name}</span>
+                                  {selectedTags.includes(tag.name) && (
+                                    <X className="w-3 h-3 ml-2" />
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })}
+
+                  {/* Clear Filters Button */}
+                  {(selectedTags.length > 0 || selectedSubtypes.length > 0) && (
+                    <Button variant="outline" size="sm" onClick={clearFilters}>
+                      <X className="w-4 h-4 mr-2" />
+                      Clear Filters ({selectedTags.length + selectedSubtypes.length})
+                    </Button>
+                  )}
                 </div>
 
-                {/* Clear Filters Button */}
-                {(selectedTags.length > 0 || selectedSubtypes.length > 0) && (
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    <X className="w-4 h-4 mr-2" />
-                    Clear Filters ({selectedTags.length + selectedSubtypes.length})
-                  </Button>
-                )}
+                {/* Advanced Options Toggle */}
+                <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Продвинутые опции
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4 pt-4">
+                    <div className="flex flex-wrap gap-4 items-center">
+                      {/* Advanced Category Filters */}
+                      {Object.entries(advancedTags).map(([category, tags]) => {
+                        const categoryTags = tags as any[];
+                        return (
+                          <div key={category} className="min-w-[200px]">
+                            <Select
+                              value={selectedTags.find(tag => categoryTags.some((t: any) => t.name === tag)) || ""}
+                              onValueChange={(value) => {
+                                if (value) {
+                                  toggleTag(value);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={`${category} (${selectedTags.filter(tag => categoryTags.some((t: any) => t.name === tag)).length})`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categoryTags.map((tag: any) => (
+                                  <SelectItem 
+                                    key={tag.id} 
+                                    value={tag.name}
+                                    className={selectedTags.includes(tag.name) ? "bg-primary/10" : ""}
+                                  >
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{tag.name}</span>
+                                      {selectedTags.includes(tag.name) && (
+                                        <X className="w-3 h-3 ml-2" />
+                                      )}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
 
               {/* Selected Filters Display */}
