@@ -36,20 +36,20 @@ interface ProductCardProps {
 const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const availablePartnerTypes = Object.keys(product.partner_terms);
   
-  // Function to generate pastel colors based on category
+  // Function to generate very light pastel colors based on category (Notion-style)
   const getCategoryColors = (category: string | null) => {
     const colorPalettes = {
-      'Business Model': { bg: '#EEF2FF', border: '#C7D2FE', text: '#4338CA' }, // Indigo
-      'Technology': { bg: '#F3E8FF', border: '#DDD6FE', text: '#7C3AED' }, // Purple
-      'Client Segment': { bg: '#ECFDF5', border: '#BBF7D0', text: '#059669' }, // Green
-      'Industry': { bg: '#FEF3C7', border: '#FDE68A', text: '#D97706' }, // Amber
-      'Quality': { bg: '#FECACA', border: '#FCA5A5', text: '#DC2626' }, // Red
-      'Earning': { bg: '#D1FAE5', border: '#A7F3D0', text: '#047857' }, // Emerald
-      'Partner Type': { bg: '#E0E7FF', border: '#C7D2FE', text: '#3730A3' }, // Indigo
+      'Business Model': { bg: '#F8FAFF', border: '#E8EEFF', text: '#6366F1' }, // Very light indigo
+      'Technology': { bg: '#FDFAFF', border: '#F3EAFF', text: '#8B5CF6' }, // Very light purple
+      'Client Segment': { bg: '#F8FDF9', border: '#E8F7ED', text: '#10B981' }, // Very light green
+      'Industry': { bg: '#FFFCF5', border: '#FEF7E0', text: '#F59E0B' }, // Very light amber
+      'Quality': { bg: '#FFF9F9', border: '#FEE8E8', text: '#EF4444' }, // Very light red
+      'Earning': { bg: '#F7FDF9', border: '#E6F7ED', text: '#059669' }, // Very light emerald
+      'Partner Type': { bg: '#F9FAFB', border: '#E5E7EB', text: '#4B5563' }, // Very light gray
     };
     
     return colorPalettes[category as keyof typeof colorPalettes] || 
-           { bg: '#F3F4F6', border: '#D1D5DB', text: '#374151' }; // Default gray
+           { bg: '#FAFAFA', border: '#E5E5E5', text: '#525252' }; // Default very light gray
   };
 
   // Get key tags for overlay on image
