@@ -18,6 +18,7 @@ interface ProductFormData {
   id?: string;
   name: string;
   description: string;
+  extended_description?: string;
   price: number | null;
   commission_rate: number | null;
   status: string;
@@ -62,6 +63,7 @@ export default function ProductServiceEdit() {
     defaultValues: {
       name: '',
       description: '',
+      extended_description: '',
       price: null,
       commission_rate: null,
       status: 'pending',
@@ -144,6 +146,7 @@ export default function ProductServiceEdit() {
       id: data.id,
       name: data.name || '',
       description: data.description || '',
+      extended_description: data.extended_description || '',
       price: data.price,
       commission_rate: data.commission_rate,
       status: data.status || 'pending',
@@ -478,6 +481,25 @@ export default function ProductServiceEdit() {
                               onChange={field.onChange}
                               placeholder="Detailed description of your product/service..."
                               className="min-h-[200px]"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="extended_description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Extended Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              value={field.value || ''}
+                              onChange={field.onChange}
+                              placeholder="This extended description will appear prominently on the product page to give more context to potential partners..."
+                              className="min-h-[100px]"
                             />
                           </FormControl>
                           <FormMessage />

@@ -207,6 +207,7 @@ export type Database = {
           commission_rate: number | null
           created_at: string | null
           description: string | null
+          extended_description: string | null
           features: string[] | null
           getting_customers: string[] | null
           id: string
@@ -230,6 +231,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           description?: string | null
+          extended_description?: string | null
           features?: string[] | null
           getting_customers?: string[] | null
           id?: string
@@ -253,6 +255,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           description?: string | null
+          extended_description?: string | null
           features?: string[] | null
           getting_customers?: string[] | null
           id?: string
