@@ -28,7 +28,7 @@ const Marketplace = () => {
     try {
       setLoading(true);
       
-      // Fetch products with vendor information
+      // Fetch products with vendor and tags information
       const { data: productsData, error } = await supabase
         .from('products')
         .select(`
@@ -39,6 +39,16 @@ const Marketplace = () => {
             pitch,
             website,
             banner_image_url
+          ),
+          product_tags (
+            tags (
+              id,
+              name,
+              color_hex,
+              category,
+              is_featured,
+              sort_order
+            )
           )
         `)
         .eq('status', 'approved')
@@ -47,26 +57,31 @@ const Marketplace = () => {
       if (error) throw error;
 
       // Transform data to match the expected format
-      const transformedProducts = (productsData || []).map(product => ({
-        id: product.id,
-        title: product.name,
-        vendor: product.vendors?.company_name || 'Unknown Vendor',
-        niche: product.vendors?.niche || 'General',
-        pitch: product.description || product.vendors?.pitch || '',
-        tags: [product.vendors?.niche || 'General'], // We'll expand this later
-        slug: product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        image: product.vendors?.banner_image_url || getProductImage(product.vendors?.niche),
-        partner_terms: getDefaultPartnerTerms(),
-        price: product.price,
-        commission_rate: product.commission_rate
-      }));
+      const transformedProducts = (productsData || []).map(product => {
+        const tags = product.product_tags?.map(pt => pt.tags).filter(Boolean) || [];
+        
+        return {
+          id: product.id,
+          title: product.name,
+          vendor: product.vendors?.company_name || 'Unknown Vendor',
+          niche: product.vendors?.niche || 'General',
+          pitch: product.description || product.vendors?.pitch || '',
+          tags: tags,
+          slug: product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
+          partner_terms: getDefaultPartnerTerms(),
+          image: getProductImage(product.vendors?.niche),
+          commission_rate: product.commission_rate,
+          average_deal_size: product.average_deal_size,
+          annual_income_potential: product.annual_income_potential
+        };
+      });
 
       setProducts(transformedProducts);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching products:', error);
       toast({
         title: "Error",
-        description: "Failed to load products",
+        description: "Failed to fetch products",
         variant: "destructive"
       });
     } finally {
@@ -89,18 +104,31 @@ const Marketplace = () => {
     affiliate: { margin_pct: 15, notes: "Marketing materials provided" }
   });
 
-  const allTags = Array.from(new Set(products.flatMap(p => p.tags)));
-  const partnerSubtypes = ["white_label", "reseller", "agent", "affiliate", "referral", "advisor"];
+  // Calculate all available tags and categories
+  const allTags = Array.from(new Set(products.flatMap(product => 
+    product.tags?.map(tag => tag.name) || []
+  )));
+
+  const tagsByCategory = products.reduce((acc, product) => {
+    product.tags?.forEach(tag => {
+      const category = tag.category || 'Other';
+      if (!acc[category]) acc[category] = new Set();
+      acc[category].add(tag.name);
+    });
+    return acc;
+  }, {} as Record<string, Set<string>>);
+
+  const partnerSubtypes = ["white_label", "reseller", "affiliate"];
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.niche.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      product.pitch.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.tags?.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => product.tags.includes(tag));
+      selectedTags.some(tag => product.tags?.some(t => t.name === tag));
 
     const matchesSubtypes = selectedSubtypes.length === 0 || 
       selectedSubtypes.some(subtype => product.partner_terms[subtype]);
@@ -185,24 +213,44 @@ const Marketplace = () => {
               </div>
             </div>
 
-            {/* Filter Tags */}
+            {/* Filter Tags by Category */}
             <Card className="p-4">
               <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {allTags.map(tag => (
-                      <Badge
-                        key={tag}
-                        variant={selectedTags.includes(tag) ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => toggleTag(tag)}
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
+                {Object.entries(tagsByCategory).length > 0 ? (
+                  Object.entries(tagsByCategory).map(([category, tagSet]) => (
+                    <div key={category}>
+                      <h3 className="font-medium text-gray-900 mb-2">{category}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from(tagSet as Set<string>).map((tag: string) => (
+                          <Badge
+                            key={tag}
+                            variant={selectedTags.includes(tag) ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => toggleTag(tag)}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">All Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {allTags.map(tag => (
+                        <Badge
+                          key={tag}
+                          variant={selectedTags.includes(tag) ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => toggleTag(tag)}
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Partner Types</h3>
@@ -214,7 +262,7 @@ const Marketplace = () => {
                         className="cursor-pointer"
                         onClick={() => toggleSubtype(subtype)}
                       >
-                        {subtype.replace('_', ' ')}
+                        {subtype.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </Badge>
                     ))}
                   </div>

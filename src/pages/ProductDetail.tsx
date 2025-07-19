@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 import { ROICalculator } from "@/components/ROICalculator";
+import { TagDisplay } from "@/components/TagDisplay";
+import { TagCategoryDisplay } from "@/components/TagCategoryDisplay";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -22,6 +24,7 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const [product, setProduct] = useState<any>(null);
   const [vendor, setVendor] = useState<any>(null);
+  const [productTags, setProductTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculatorValues, setCalculatorValues] = useState({
     price: 1000,
@@ -60,6 +63,26 @@ const ProductDetail = () => {
       }
 
       setProduct(productData);
+
+      // Fetch product tags
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('product_tags')
+        .select(`
+          tags (
+            id,
+            name,
+            color_hex,
+            category,
+            is_featured,
+            sort_order
+          )
+        `)
+        .eq('product_id', productData.id);
+
+      if (!tagsError && tagsData) {
+        const tags = tagsData.map(item => item.tags).filter(Boolean);
+        setProductTags(tags);
+      }
 
       // Fetch vendor info
       if (productData.vendor_id) {
@@ -144,6 +167,34 @@ const ProductDetail = () => {
     }
   };
 
+  // Get featured tags and range tags for header display
+  const featuredTags = productTags.filter(tag => tag.is_featured);
+  const getRangeTags = () => {
+    const rangeTags = [];
+    if (product.commission_rate) {
+      const range = product.commission_rate <= 10 ? '0–10%' : 
+                   product.commission_rate <= 30 ? '11–30%' : 
+                   product.commission_rate <= 50 ? '31–50%' : '50%+';
+      rangeTags.push({ name: `${range} Commission`, color_hex: '#06D6A0' });
+    }
+    if (product.annual_income_potential) {
+      const monthlyIncome = product.annual_income_potential / 12;
+      const range = monthlyIncome < 1000 ? '<$1K/mo' :
+                   monthlyIncome <= 4999 ? '$1K–5K/mo' :
+                   monthlyIncome <= 19999 ? '$5K–20K/mo' :
+                   monthlyIncome <= 99999 ? '$20K–100K/mo' : '$100K+/mo';
+      rangeTags.push({ name: range, color_hex: '#FFD60A' });
+    }
+    if (product.average_deal_size) {
+      const range = product.average_deal_size < 100 ? '<$100' :
+                   product.average_deal_size <= 999 ? '$100–999' :
+                   product.average_deal_size <= 4999 ? '$1K–5K' :
+                   product.average_deal_size <= 19999 ? '$5K–20K' : '$20K+ deals';
+      rangeTags.push({ name: range, color_hex: '#FB8500' });
+    }
+    return rangeTags;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -173,6 +224,20 @@ const ProductDetail = () => {
                   <Badge variant="outline">{vendor?.niche || 'General'}</Badge>
                 </div>
                 <CardTitle className="text-3xl">{product.name}</CardTitle>
+                
+                {/* Featured Tags Display */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[...featuredTags, ...getRangeTags()].slice(0, 6).map((tag, index) => (
+                    <Badge 
+                      key={tag.id || `range-${index}`}
+                      className="text-sm text-white border-0 font-medium"
+                      style={{ backgroundColor: tag.color_hex }}
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </div>
+
                 <CardDescription className="text-lg">
                   {product.description || 'No description available'}
                 </CardDescription>
@@ -538,6 +603,13 @@ const ProductDetail = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Tags by Category */}
+            <TagCategoryDisplay 
+              tags={productTags}
+              title="Product Tags"
+              showEmpty={true}
+            />
 
           </div>
         </div>

@@ -4,6 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Building, MessageSquare, ExternalLink, Play } from "lucide-react";
+import { TagDisplay } from "@/components/TagDisplay";
+
+interface Tag {
+  id: string;
+  name: string;
+  color_hex: string;
+  category: string | null;
+  is_featured: boolean;
+  sort_order: number;
+}
 
 interface Product {
   id: string;
@@ -11,10 +21,13 @@ interface Product {
   vendor: string;
   niche: string;
   pitch: string;
-  tags: string[];
+  tags: Tag[];
   slug: string;
   partner_terms: Record<string, { margin_pct: number; notes: string }>;
   image?: string;
+  commission_rate?: number;
+  average_deal_size?: number;
+  annual_income_potential?: number;
 }
 
 interface ProductCardProps {
@@ -24,9 +37,35 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const availablePartnerTypes = Object.keys(product.partner_terms);
+  
+  // Filter featured tags for prominent display
+  const featuredTags = product.tags?.filter(tag => tag.is_featured) || [];
+  const allTags = product.tags || [];
 
   // Default image if none provided
   const productImage = product.image || `https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=240&fit=crop&crop=center`;
+
+  // Get automatic range tags
+  const getRangeTags = () => {
+    const rangeTags = [];
+    if (product.commission_rate) {
+      const range = product.commission_rate <= 10 ? '0–10%' : 
+                   product.commission_rate <= 30 ? '11–30%' : 
+                   product.commission_rate <= 50 ? '31–50%' : '50%+';
+      rangeTags.push({ name: `Commission: ${range}`, color_hex: '#06D6A0' });
+    }
+    if (product.annual_income_potential) {
+      const monthlyIncome = product.annual_income_potential / 12;
+      const range = monthlyIncome < 1000 ? '<$1K/mo' :
+                   monthlyIncome <= 4999 ? '$1K–5K/mo' :
+                   monthlyIncome <= 19999 ? '$5K–20K/mo' :
+                   monthlyIncome <= 99999 ? '$20K–100K/mo' : '$100K+/mo';
+      rangeTags.push({ name: range, color_hex: '#FFD60A' });
+    }
+    return rangeTags;
+  };
+
+  const displayTags = [...featuredTags, ...getRangeTags()];
 
   if (viewMode === "list") {
     return (
@@ -59,14 +98,18 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                 <p className="text-gray-600 mb-3 line-clamp-2">{product.pitch}</p>
                 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {product.tags.slice(0, 4).map(tag => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
+                  {displayTags.slice(0, 4).map((tag, index) => (
+                    <Badge 
+                      key={tag.id || `range-${index}`} 
+                      className="text-xs text-white border-0"
+                      style={{ backgroundColor: tag.color_hex }}
+                    >
+                      {tag.name}
                     </Badge>
                   ))}
-                  {product.tags.length > 4 && (
+                  {allTags.length > 4 && (
                     <Badge variant="secondary" className="text-xs">
-                      +{product.tags.length - 4} more
+                      +{allTags.length - 4} more
                     </Badge>
                   )}
                 </div>
@@ -129,14 +172,18 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
       <CardContent>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-1">
-            {product.tags.slice(0, 3).map(tag => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
+            {displayTags.slice(0, 3).map((tag, index) => (
+              <Badge 
+                key={tag.id || `range-${index}`} 
+                className="text-xs text-white border-0"
+                style={{ backgroundColor: tag.color_hex }}
+              >
+                {tag.name}
               </Badge>
             ))}
-            {product.tags.length > 3 && (
+            {allTags.length > 3 && (
               <Badge variant="secondary" className="text-xs">
-                +{product.tags.length - 3}
+                +{allTags.length - 3}
               </Badge>
             )}
           </div>
