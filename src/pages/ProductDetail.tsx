@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -224,11 +223,17 @@ const ProductDetail = () => {
                   <Badge variant="outline">{vendor?.niche || 'General'}</Badge>
                 </div>
                 <CardTitle className="text-3xl">{product.name}</CardTitle>
-                
 
                 <CardDescription className="text-lg">
                   {product.description || 'No description available'}
                 </CardDescription>
+
+                {/* Detailed Description */}
+                <div className="pt-2">
+                  <p className="text-foreground leading-relaxed">
+                    Start a thriving e-learning business under your own brand with zero hassle. Our fully white-label AI training platform lets you offer corporate learning solutions without managing content creation, assessment development, or support—we handle it all. Focus on growing your profits and brand!
+                  </p>
+                </div>
               </CardHeader>
               <CardContent>
                 {/* Extended Description */}
@@ -240,8 +245,8 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                {/* Clean Overview */}
-                <div className="space-y-4 mb-6">
+                {/* Tags Overview with Subtle Shadow */}
+                <div className="space-y-4 mb-6 p-4 rounded-lg shadow-sm bg-background border border-border/40">
                   {/* Partner Types - Simple text with dots */}
                   <div>
                     <span className="text-sm text-muted-foreground">Perfect for: </span>
