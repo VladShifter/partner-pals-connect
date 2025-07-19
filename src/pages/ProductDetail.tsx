@@ -178,23 +178,49 @@ const ProductDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 mb-6">
-                  {/* Key reasons to become a partner */}
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span className="font-medium">Easy to Start</span>
+                {/* Quick Overview Badges */}
+                <div className="space-y-4 mb-6">
+                  {/* Partner Types */}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Perfect for:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="text-xs">IT Consultants</Badge>
+                      <Badge variant="outline" className="text-xs">SaaS Resellers</Badge>
+                      <Badge variant="outline" className="text-xs">Digital Agencies</Badge>
+                      <Badge variant="outline" className="text-xs">System Integrators</Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span className="font-medium">Zero Risk Investment</span>
+
+                  {/* Key Benefits Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <div className="text-lg font-bold text-primary">$150K</div>
+                      <div className="text-xs text-muted-foreground">Annual Potential</div>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <div className="text-lg font-bold text-primary">75%</div>
+                      <div className="text-xs text-muted-foreground">Profit Margin</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span className="font-medium">High Profit Margins</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span className="font-medium">100% Money Back Guarantee</span>
+
+                  {/* Quick Value Props */}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      <Check className="w-3 h-3 mr-1" />
+                      Zero Investment
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      <Check className="w-3 h-3 mr-1" />
+                      Fully Managed
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      <Check className="w-3 h-3 mr-1" />
+                      215+ Countries
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      <Check className="w-3 h-3 mr-1" />
+                      Enterprise Ready
+                    </Badge>
                   </div>
                 </div>
 
