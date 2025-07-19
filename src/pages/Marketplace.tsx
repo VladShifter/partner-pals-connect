@@ -129,7 +129,7 @@ const Marketplace = () => {
   }, {} as Record<string, any[]>);
 
   // Basic filter categories
-  const basicCategories = ['Business Model', 'Customer Segments', 'Industries', 'Partnership Types'];
+  const basicCategories = ['Business Model', 'Client Segment', 'Industry', 'Partner Type'];
   const basicTags = Object.fromEntries(
     Object.entries(tagsByCategory).filter(([category]) => basicCategories.includes(category))
   );
