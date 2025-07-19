@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, Grid, List, X } from "lucide-react";
+import { Search, Filter, Grid, List, X, ChevronDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Marketplace = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,6 +18,7 @@ const Marketplace = () => {
   const [selectedSubtypes, setSelectedSubtypes] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [products, setProducts] = useState<any[]>([]);
+  const [allTags, setAllTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -27,6 +29,17 @@ const Marketplace = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      
+      // Fetch all tags first
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('tags')
+        .select('*')
+        .eq('is_global', true)
+        .order('category', { ascending: true })
+        .order('sort_order', { ascending: true });
+
+      if (tagsError) throw tagsError;
+      setAllTags(tagsData || []);
       
       // Fetch products with vendor and tags information
       const { data: productsData, error } = await supabase
@@ -104,19 +117,13 @@ const Marketplace = () => {
     affiliate: { margin_pct: 15, notes: "Marketing materials provided" }
   });
 
-  // Calculate all available tags and categories
-  const allTags = Array.from(new Set(products.flatMap(product => 
-    product.tags?.map(tag => tag.name) || []
-  )));
-
-  const tagsByCategory = products.reduce((acc, product) => {
-    product.tags?.forEach(tag => {
-      const category = tag.category || 'Other';
-      if (!acc[category]) acc[category] = new Set();
-      acc[category].add(tag.name);
-    });
+  // Group all tags by category
+  const tagsByCategory = allTags.reduce((acc, tag: any) => {
+    const category = tag.category || 'Other';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(tag);
     return acc;
-  }, {} as Record<string, Set<string>>);
+  }, {} as Record<string, any[]>);
 
   const partnerSubtypes = ["white_label", "reseller", "affiliate"];
 
@@ -213,68 +220,116 @@ const Marketplace = () => {
               </div>
             </div>
 
-            {/* Filter Tags by Category */}
+            {/* Filter Dropdowns */}
             <Card className="p-4">
-              <div className="space-y-4">
-                {Object.entries(tagsByCategory).length > 0 ? (
-                  Object.entries(tagsByCategory).map(([category, tagSet]) => (
-                    <div key={category}>
-                      <h3 className="font-medium text-gray-900 mb-2">{category}</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {Array.from(tagSet as Set<string>).map((tag: string) => (
-                          <Badge
-                            key={tag}
-                            variant={selectedTags.includes(tag) ? "default" : "outline"}
-                            className="cursor-pointer"
-                            onClick={() => toggleTag(tag)}
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Category-based Tag Filters */}
+                {Object.entries(tagsByCategory).map(([category, tags]) => {
+                  const categoryTags = tags as any[];
+                  return (
+                    <div key={category} className="min-w-[200px]">
+                      <Select
+                        value={selectedTags.find(tag => categoryTags.some((t: any) => t.name === tag)) || ""}
+                        onValueChange={(value) => {
+                          if (value) {
+                            toggleTag(value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={`${category} (${selectedTags.filter(tag => categoryTags.some((t: any) => t.name === tag)).length})`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categoryTags.map((tag: any) => (
+                            <SelectItem 
+                              key={tag.id} 
+                              value={tag.name}
+                              className={selectedTags.includes(tag.name) ? "bg-primary/10" : ""}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span>{tag.name}</span>
+                                {selectedTags.includes(tag.name) && (
+                                  <X className="w-3 h-3 ml-2" />
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))
-                ) : (
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">All Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {allTags.map(tag => (
-                        <Badge
-                          key={tag}
-                          variant={selectedTags.includes(tag) ? "default" : "outline"}
-                          className="cursor-pointer"
-                          onClick={() => toggleTag(tag)}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  );
+                })}
 
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Partner Types</h3>
+                {/* Partner Types Filter */}
+                <div className="min-w-[150px]">
+                  <Select
+                    value={selectedSubtypes[0] || ""}
+                    onValueChange={(value) => {
+                      if (value) {
+                        toggleSubtype(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={`Partner Type (${selectedSubtypes.length})`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {partnerSubtypes.map(subtype => (
+                        <SelectItem 
+                          key={subtype} 
+                          value={subtype}
+                          className={selectedSubtypes.includes(subtype) ? "bg-primary/10" : ""}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span>{subtype.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                            {selectedSubtypes.includes(subtype) && (
+                              <X className="w-3 h-3 ml-2" />
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Clear Filters Button */}
+                {(selectedTags.length > 0 || selectedSubtypes.length > 0) && (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    <X className="w-4 h-4 mr-2" />
+                    Clear Filters ({selectedTags.length + selectedSubtypes.length})
+                  </Button>
+                )}
+              </div>
+
+              {/* Selected Filters Display */}
+              {(selectedTags.length > 0 || selectedSubtypes.length > 0) && (
+                <div className="mt-4 pt-4 border-t">
                   <div className="flex flex-wrap gap-2">
-                    {partnerSubtypes.map(subtype => (
+                    {selectedTags.map(tag => (
+                      <Badge
+                        key={tag}
+                        variant="default"
+                        className="cursor-pointer"
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    ))}
+                    {selectedSubtypes.map(subtype => (
                       <Badge
                         key={subtype}
-                        variant={selectedSubtypes.includes(subtype) ? "default" : "outline"}
+                        variant="secondary"
                         className="cursor-pointer"
                         onClick={() => toggleSubtype(subtype)}
                       >
                         {subtype.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <X className="w-3 h-3 ml-1" />
                       </Badge>
                     ))}
                   </div>
                 </div>
-
-                {(selectedTags.length > 0 || selectedSubtypes.length > 0 || searchQuery) && (
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    <X className="w-4 h-4 mr-2" />
-                    Clear Filters
-                  </Button>
-                )}
-              </div>
+              )}
             </Card>
           </div>
 
