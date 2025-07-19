@@ -311,27 +311,39 @@ export type Database = {
       }
       tags: {
         Row: {
+          category: string | null
           color_hex: string | null
           created_at: string | null
+          filter_type: string | null
           id: string
+          is_featured: boolean | null
           is_global: boolean | null
           name: string
+          sort_order: number | null
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           color_hex?: string | null
           created_at?: string | null
+          filter_type?: string | null
           id?: string
+          is_featured?: boolean | null
           is_global?: boolean | null
           name: string
+          sort_order?: number | null
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           color_hex?: string | null
           created_at?: string | null
+          filter_type?: string | null
           id?: string
+          is_featured?: boolean | null
           is_global?: boolean | null
           name?: string
+          sort_order?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -419,6 +431,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_commission_range_tag: {
+        Args: { commission_rate: number }
+        Returns: string
+      }
+      get_deal_size_range_tag: {
+        Args: { deal_size: number }
+        Returns: string
+      }
+      get_monthly_income_range_tag: {
+        Args: { annual_income: number }
+        Returns: string
+      }
+      get_setup_fee_range_tag: {
+        Args: { setup_fee: number }
+        Returns: string
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
