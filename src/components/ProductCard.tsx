@@ -36,6 +36,22 @@ interface ProductCardProps {
 const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const availablePartnerTypes = Object.keys(product.partner_terms);
   
+  // Function to generate pastel colors based on category
+  const getCategoryColors = (category: string | null) => {
+    const colorPalettes = {
+      'Business Model': { bg: '#EEF2FF', border: '#C7D2FE', text: '#4338CA' }, // Indigo
+      'Technology': { bg: '#F3E8FF', border: '#DDD6FE', text: '#7C3AED' }, // Purple
+      'Client Segment': { bg: '#ECFDF5', border: '#BBF7D0', text: '#059669' }, // Green
+      'Industry': { bg: '#FEF3C7', border: '#FDE68A', text: '#D97706' }, // Amber
+      'Quality': { bg: '#FECACA', border: '#FCA5A5', text: '#DC2626' }, // Red
+      'Earning': { bg: '#D1FAE5', border: '#A7F3D0', text: '#047857' }, // Emerald
+      'Partner Type': { bg: '#E0E7FF', border: '#C7D2FE', text: '#3730A3' }, // Indigo
+    };
+    
+    return colorPalettes[category as keyof typeof colorPalettes] || 
+           { bg: '#F3F4F6', border: '#D1D5DB', text: '#374151' }; // Default gray
+  };
+
   // Get key tags for overlay on image
   const getKeyTags = () => {
     const businessModelTag = product.tags?.find(tag => tag.category === 'Business Model');
@@ -61,7 +77,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                    monthlyIncome <= 4999 ? '$1K–5K/mo' :
                    monthlyIncome <= 19999 ? '$5K–20K/mo' :
                    monthlyIncome <= 99999 ? '$20K–100K/mo' : '$100K+/mo';
-      tags.push({ name: `Заработок от ${range}`, color_hex: '#10B981', category: 'Earning', id: 'earning' });
+      tags.push({ name: `Earn from ${range}`, color_hex: '#10B981', category: 'Earning', id: 'earning' });
     }
     
     if (qualityTag) tags.push(qualityTag);
@@ -114,15 +130,22 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                 
                 {/* Display Tags */}
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {displayTags.map((tag, index) => (
-                    <Badge 
-                      key={tag.id || `display-${index}`} 
-                      className="text-xs text-white border-0"
-                      style={{ backgroundColor: tag.color_hex }}
-                    >
-                      {tag.name}
-                    </Badge>
-                  ))}
+                  {displayTags.map((tag, index) => {
+                    const colors = getCategoryColors(tag.category);
+                    return (
+                      <Badge 
+                        key={tag.id || `display-${index}`} 
+                        className="text-xs border"
+                        style={{ 
+                          backgroundColor: colors.bg,
+                          borderColor: colors.border,
+                          color: colors.text
+                        }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    );
+                  })}
                 </div>
                 
                 <div className="text-sm text-gray-600">
@@ -192,15 +215,22 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
         <div className="space-y-4">
           {/* Display Tags */}
           <div className="flex flex-wrap gap-1">
-            {displayTags.map((tag, index) => (
-              <Badge 
-                key={tag.id || `display-${index}`} 
-                className="text-xs text-white border-0"
-                style={{ backgroundColor: tag.color_hex }}
-              >
-                {tag.name}
-              </Badge>
-            ))}
+            {displayTags.map((tag, index) => {
+              const colors = getCategoryColors(tag.category);
+              return (
+                <Badge 
+                  key={tag.id || `display-${index}`} 
+                  className="text-xs border"
+                  style={{ 
+                    backgroundColor: colors.bg,
+                    borderColor: colors.border,
+                    color: colors.text
+                  }}
+                >
+                  {tag.name}
+                </Badge>
+              );
+            })}
           </div>
           
           <div className="text-xs text-gray-600">
