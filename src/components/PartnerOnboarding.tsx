@@ -35,6 +35,7 @@ interface ApplicationData {
   
   // Business Information
   company_name: string;
+  company_description: string;
   website_url: string;
   country: string;
   business_model: string;
@@ -148,6 +149,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     partner_roles: [],
     entity_type: 'individual',
     company_name: "",
+    company_description: "",
     website_url: "",
     country: "",
     business_model: "",
@@ -412,7 +414,15 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                 <Label className="text-base font-medium mb-4 block">Are you applying as:</Label>
                 <RadioGroup 
                   value={applicationData.entity_type} 
-                  onValueChange={(value: 'individual' | 'company') => updateField("entity_type", value)}
+                  onValueChange={(value: 'individual' | 'company') => {
+                    updateField("entity_type", value);
+                    // Clear fields that are specific to the other type
+                    if (value === 'individual') {
+                      updateField("company_description", "");
+                    } else {
+                      updateField("individual_type", "");
+                    }
+                  }}
                   className="grid grid-cols-2 gap-4"
                 >
                   <div className={`border rounded-lg p-4 cursor-pointer transition-all ${
@@ -471,6 +481,20 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                       onChange={(e) => updateField("website_url", e.target.value)}
                       placeholder="https://yourcompany.com"
                       className="mt-2 h-12"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="company_description" className="text-base font-medium">
+                      What does your company do? (1-2 sentences)
+                    </Label>
+                    <Textarea
+                      id="company_description"
+                      value={applicationData.company_description}
+                      onChange={(e) => updateField("company_description", e.target.value)}
+                      placeholder="Briefly describe what your company does and what services you provide..."
+                      rows={3}
+                      className="mt-2"
                     />
                   </div>
                 </div>

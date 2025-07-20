@@ -49,14 +49,17 @@ export type Database = {
           active_marketing_channels: string | null
           audience_size: string | null
           business_model: string | null
+          company_description: string | null
           company_name: string | null
           completed_steps: number[] | null
           country: string | null
           created_at: string | null
           current_step: number | null
           email: string
+          entity_type: string | null
           experience_years: number | null
           id: string
+          individual_type: string | null
           industry: string | null
           marketing_channels: string[] | null
           monthly_revenue: number | null
@@ -66,6 +69,7 @@ export type Database = {
           phone: string | null
           previous_partnerships: string | null
           product_id: string | null
+          revenue_goals: number | null
           social_profiles: string | null
           status: string | null
           target_market: string | null
@@ -79,14 +83,17 @@ export type Database = {
           active_marketing_channels?: string | null
           audience_size?: string | null
           business_model?: string | null
+          company_description?: string | null
           company_name?: string | null
           completed_steps?: number[] | null
           country?: string | null
           created_at?: string | null
           current_step?: number | null
           email: string
+          entity_type?: string | null
           experience_years?: number | null
           id?: string
+          individual_type?: string | null
           industry?: string | null
           marketing_channels?: string[] | null
           monthly_revenue?: number | null
@@ -96,6 +103,7 @@ export type Database = {
           phone?: string | null
           previous_partnerships?: string | null
           product_id?: string | null
+          revenue_goals?: number | null
           social_profiles?: string | null
           status?: string | null
           target_market?: string | null
@@ -109,14 +117,17 @@ export type Database = {
           active_marketing_channels?: string | null
           audience_size?: string | null
           business_model?: string | null
+          company_description?: string | null
           company_name?: string | null
           completed_steps?: number[] | null
           country?: string | null
           created_at?: string | null
           current_step?: number | null
           email?: string
+          entity_type?: string | null
           experience_years?: number | null
           id?: string
+          individual_type?: string | null
           industry?: string | null
           marketing_channels?: string[] | null
           monthly_revenue?: number | null
@@ -126,6 +137,7 @@ export type Database = {
           phone?: string | null
           previous_partnerships?: string | null
           product_id?: string | null
+          revenue_goals?: number | null
           social_profiles?: string | null
           status?: string | null
           target_market?: string | null
