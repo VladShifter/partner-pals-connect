@@ -26,20 +26,42 @@ interface ApplicationData {
   name: string;
   company_name: string;
   phone: string;
+  website_url: string;
+  country: string;
+  business_model: string;
+  industry: string;
   experience_years: number | null;
   target_market: string;
   monthly_revenue: number | null;
   team_size: number | null;
   marketing_channels: string[];
   partnership_goals: string[];
+  active_marketing_channels: string;
+  audience_size: string;
+  social_profiles: string;
   previous_partnerships: string;
   why_interested: string;
+  partner_roles: string[];
   current_step: number;
   completed_steps: number[];
   product_id: string;
+  user_id?: string;
 }
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
+
+const partnerRoleOptions = [
+  "Affiliate Marketer",
+  "Agency Partner", 
+  "Influencer",
+  "Managed Service Provider (MSP)",
+  "Publisher",
+  "Referral Partner",
+  "Reseller Partner",
+  "System Integrator (SI)",
+  "Value Added Reseller (VAR)",
+  "Other"
+];
 
 const marketingChannelsOptions = [
   "Social Media",
@@ -79,14 +101,22 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     name: "",
     company_name: "",
     phone: "",
+    website_url: "",
+    country: "",
+    business_model: "",
+    industry: "",
     experience_years: null,
     target_market: "",
     monthly_revenue: null,
     team_size: null,
     marketing_channels: [],
     partnership_goals: [],
+    active_marketing_channels: "",
+    audience_size: "",
+    social_profiles: "",
     previous_partnerships: "",
     why_interested: "",
+    partner_roles: [],
     current_step: 1,
     completed_steps: [1],
     product_id: productId,
@@ -170,11 +200,56 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
       return;
     }
 
+    // Create user account on first step completion
+    if (currentStep === 1 && applicationData.email && applicationData.name) {
+      await createUserAccount();
+    }
+
     // Auto-save current step
     await saveProgress(applicationData, currentStep);
     
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const createUserAccount = async () => {
+    try {
+      // Check if user already exists
+      const { data: existingUser } = await supabase.auth.getUser();
+      
+      if (!existingUser.user) {
+        // Generate a temporary password
+        const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        
+        // Create user account
+        const { data, error } = await supabase.auth.signUp({
+          email: applicationData.email,
+          password: tempPassword,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: applicationData.name,
+            }
+          }
+        });
+
+        if (error) {
+          console.error("Error creating user account:", error);
+          return;
+        }
+
+        if (data.user) {
+          setApplicationData(prev => ({ ...prev, user_id: data.user.id }));
+          
+          toast({
+            title: "Account created!",
+            description: "We've created your partner account. Check your email to verify it.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error in createUserAccount:", error);
     }
   };
 
@@ -261,9 +336,42 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold mb-2">Company Information</h3>
+              <h3 className="text-xl font-semibold mb-2">Partnership Roles</h3>
               <p className="text-muted-foreground">
-                Tell us about your business.
+                What type of partner are you? (You can select multiple)
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              {partnerRoleOptions.map((role) => (
+                <div key={role} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={role}
+                    checked={applicationData.partner_roles.includes(role)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        updateField("partner_roles", [...applicationData.partner_roles, role]);
+                      } else {
+                        updateField("partner_roles", applicationData.partner_roles.filter(r => r !== role));
+                      }
+                    }}
+                  />
+                  <Label htmlFor={role} className="text-sm font-normal cursor-pointer">
+                    {role}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold mb-2">Business Information</h3>
+              <p className="text-muted-foreground">
+                Tell us about your business details.
               </p>
             </div>
             
@@ -282,6 +390,17 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
               </div>
               
               <div>
+                <Label htmlFor="website_url">Website URL</Label>
+                <Input
+                  id="website_url"
+                  type="url"
+                  value={applicationData.website_url}
+                  onChange={(e) => updateField("website_url", e.target.value)}
+                  placeholder="https://yourwebsite.com"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
@@ -291,21 +410,71 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
+
+              <div>
+                <Label htmlFor="country">Country</Label>
+                <Input
+                  id="country"
+                  value={applicationData.country}
+                  onChange={(e) => updateField("country", e.target.value)}
+                  placeholder="United States"
+                />
+              </div>
             </div>
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold mb-2">Experience & Team</h3>
+              <h3 className="text-xl font-semibold mb-2">Business Model & Industry</h3>
               <p className="text-muted-foreground">
-                Help us understand your background.
+                Help us understand your business better.
               </p>
             </div>
             
             <div className="space-y-4">
+              <div>
+                <Label htmlFor="business_model">Business Model</Label>
+                <Select value={applicationData.business_model} onValueChange={(value) => updateField("business_model", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your business model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="B2B">B2B</SelectItem>
+                    <SelectItem value="B2C">B2C</SelectItem>
+                    <SelectItem value="B2B2C">B2B2C</SelectItem>
+                    <SelectItem value="Marketplace">Marketplace</SelectItem>
+                    <SelectItem value="SaaS">SaaS</SelectItem>
+                    <SelectItem value="Agency">Agency</SelectItem>
+                    <SelectItem value="Consultancy">Consultancy</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="industry">Industry</Label>
+                <Select value={applicationData.industry} onValueChange={(value) => updateField("industry", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="E-commerce">E-commerce</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Real Estate">Real Estate</SelectItem>
+                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="Retail">Retail</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div>
                 <Label htmlFor="experience_years" className="flex items-center gap-2">
                   <Briefcase className="w-4 h-4" />
@@ -324,7 +493,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label htmlFor="team_size" className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
@@ -340,54 +509,6 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                     <SelectItem value="6">6-10 people</SelectItem>
                     <SelectItem value="11">11-25 people</SelectItem>
                     <SelectItem value="26">25+ people</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold mb-2">Business Details</h3>
-              <p className="text-muted-foreground">
-                Tell us about your market and revenue.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="target_market" className="flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Target Market
-                </Label>
-                <Textarea
-                  id="target_market"
-                  value={applicationData.target_market}
-                  onChange={(e) => updateField("target_market", e.target.value)}
-                  placeholder="Describe your target customers and market (e.g., small businesses, e-commerce, healthcare, etc.)"
-                  rows={3}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="monthly_revenue" className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Current Monthly Revenue
-                </Label>
-                <Select value={applicationData.monthly_revenue?.toString() || ""} onValueChange={(value) => updateField("monthly_revenue", parseFloat(value))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select revenue range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Less than $1,000</SelectItem>
-                    <SelectItem value="1000">$1,000 - $5,000</SelectItem>
-                    <SelectItem value="5000">$5,000 - $10,000</SelectItem>
-                    <SelectItem value="10000">$10,000 - $25,000</SelectItem>
-                    <SelectItem value="25000">$25,000 - $50,000</SelectItem>
-                    <SelectItem value="50000">$50,000+</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -462,6 +583,86 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
         );
 
       case 7:
+        return (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold mb-2">Marketing Details</h3>
+              <p className="text-muted-foreground">
+                Tell us about your marketing reach and channels.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="active_marketing_channels">Active Marketing Channels</Label>
+                <Textarea
+                  id="active_marketing_channels"
+                  value={applicationData.active_marketing_channels}
+                  onChange={(e) => updateField("active_marketing_channels", e.target.value)}
+                  placeholder="e.g., LinkedIn, Email, PPC..."
+                  rows={3}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="audience_size">Audience Size</Label>
+                <Input
+                  id="audience_size"
+                  value={applicationData.audience_size}
+                  onChange={(e) => updateField("audience_size", e.target.value)}
+                  placeholder="Total monthly reach"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="social_profiles">Links to Social Profiles</Label>
+                <Textarea
+                  id="social_profiles"
+                  value={applicationData.social_profiles}
+                  onChange={(e) => updateField("social_profiles", e.target.value)}
+                  placeholder="LinkedIn, Twitter, etc."
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="target_market" className="flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Target Market
+                </Label>
+                <Textarea
+                  id="target_market"
+                  value={applicationData.target_market}
+                  onChange={(e) => updateField("target_market", e.target.value)}
+                  placeholder="Describe your target customers and market (e.g., small businesses, e-commerce, healthcare, etc.)"
+                  rows={3}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="monthly_revenue" className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Current Monthly Revenue
+                </Label>
+                <Select value={applicationData.monthly_revenue?.toString() || ""} onValueChange={(value) => updateField("monthly_revenue", parseFloat(value))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select revenue range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Less than $1,000</SelectItem>
+                    <SelectItem value="1000">$1,000 - $5,000</SelectItem>
+                    <SelectItem value="5000">$5,000 - $10,000</SelectItem>
+                    <SelectItem value="10000">$10,000 - $25,000</SelectItem>
+                    <SelectItem value="25000">$25,000 - $50,000</SelectItem>
+                    <SelectItem value="50000">$50,000+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 8:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">

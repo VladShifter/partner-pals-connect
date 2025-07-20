@@ -46,66 +46,93 @@ export type Database = {
       }
       partner_applications: {
         Row: {
+          active_marketing_channels: string | null
+          audience_size: string | null
+          business_model: string | null
           company_name: string | null
           completed_steps: number[] | null
+          country: string | null
           created_at: string | null
           current_step: number | null
           email: string
           experience_years: number | null
           id: string
+          industry: string | null
           marketing_channels: string[] | null
           monthly_revenue: number | null
           name: string | null
+          partner_roles: string[] | null
           partnership_goals: string[] | null
           phone: string | null
           previous_partnerships: string | null
           product_id: string | null
+          social_profiles: string | null
           status: string | null
           target_market: string | null
           team_size: number | null
           updated_at: string | null
+          user_id: string | null
+          website_url: string | null
           why_interested: string | null
         }
         Insert: {
+          active_marketing_channels?: string | null
+          audience_size?: string | null
+          business_model?: string | null
           company_name?: string | null
           completed_steps?: number[] | null
+          country?: string | null
           created_at?: string | null
           current_step?: number | null
           email: string
           experience_years?: number | null
           id?: string
+          industry?: string | null
           marketing_channels?: string[] | null
           monthly_revenue?: number | null
           name?: string | null
+          partner_roles?: string[] | null
           partnership_goals?: string[] | null
           phone?: string | null
           previous_partnerships?: string | null
           product_id?: string | null
+          social_profiles?: string | null
           status?: string | null
           target_market?: string | null
           team_size?: number | null
           updated_at?: string | null
+          user_id?: string | null
+          website_url?: string | null
           why_interested?: string | null
         }
         Update: {
+          active_marketing_channels?: string | null
+          audience_size?: string | null
+          business_model?: string | null
           company_name?: string | null
           completed_steps?: number[] | null
+          country?: string | null
           created_at?: string | null
           current_step?: number | null
           email?: string
           experience_years?: number | null
           id?: string
+          industry?: string | null
           marketing_channels?: string[] | null
           monthly_revenue?: number | null
           name?: string | null
+          partner_roles?: string[] | null
           partnership_goals?: string[] | null
           phone?: string | null
           previous_partnerships?: string | null
           product_id?: string | null
+          social_profiles?: string | null
           status?: string | null
           target_market?: string | null
           team_size?: number | null
           updated_at?: string | null
+          user_id?: string | null
+          website_url?: string | null
           why_interested?: string | null
         }
         Relationships: [
