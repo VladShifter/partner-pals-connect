@@ -44,6 +44,80 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_applications: {
+        Row: {
+          company_name: string | null
+          completed_steps: number[] | null
+          created_at: string | null
+          current_step: number | null
+          email: string
+          experience_years: number | null
+          id: string
+          marketing_channels: string[] | null
+          monthly_revenue: number | null
+          name: string | null
+          partnership_goals: string[] | null
+          phone: string | null
+          previous_partnerships: string | null
+          product_id: string | null
+          status: string | null
+          target_market: string | null
+          team_size: number | null
+          updated_at: string | null
+          why_interested: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          completed_steps?: number[] | null
+          created_at?: string | null
+          current_step?: number | null
+          email: string
+          experience_years?: number | null
+          id?: string
+          marketing_channels?: string[] | null
+          monthly_revenue?: number | null
+          name?: string | null
+          partnership_goals?: string[] | null
+          phone?: string | null
+          previous_partnerships?: string | null
+          product_id?: string | null
+          status?: string | null
+          target_market?: string | null
+          team_size?: number | null
+          updated_at?: string | null
+          why_interested?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          completed_steps?: number[] | null
+          created_at?: string | null
+          current_step?: number | null
+          email?: string
+          experience_years?: number | null
+          id?: string
+          marketing_channels?: string[] | null
+          monthly_revenue?: number | null
+          name?: string | null
+          partnership_goals?: string[] | null
+          phone?: string | null
+          previous_partnerships?: string | null
+          product_id?: string | null
+          status?: string | null
+          target_market?: string | null
+          team_size?: number | null
+          updated_at?: string | null
+          why_interested?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_applications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           company_name: string

@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 import { ROICalculator } from "@/components/ROICalculator";
+import { PartnerOnboarding } from "@/components/PartnerOnboarding";
 import { TagDisplay } from "@/components/TagDisplay";
 import { TagCategoryDisplay } from "@/components/TagCategoryDisplay";
 
@@ -25,6 +26,7 @@ const ProductDetail = () => {
   const [vendor, setVendor] = useState<any>(null);
   const [productTags, setProductTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [calculatorValues, setCalculatorValues] = useState({
     price: 1000,
     deals: 5,
@@ -302,7 +304,7 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button onClick={handleStartChat} size="lg">
+                  <Button onClick={() => setIsOnboardingOpen(true)} size="lg">
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Apply Now
                   </Button>
@@ -530,56 +532,10 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Apply
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Apply for Partnership</DialogTitle>
-                        <DialogDescription>
-                          Fill out this form to apply for a partnership with {vendor?.company_name || 'this vendor'}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form className="space-y-4">
-                        <div>
-                          <Label htmlFor="name">Full Name</Label>
-                          <Input id="name" placeholder="Enter your full name" />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" placeholder="Enter your email" />
-                        </div>
-                        <div>
-                          <Label htmlFor="company">Company</Label>
-                          <Input id="company" placeholder="Enter your company name" />
-                        </div>
-                        <div>
-                          <Label htmlFor="experience">Experience</Label>
-                          <Textarea 
-                            id="experience" 
-                            placeholder="Tell us about your experience in sales/partnerships..."
-                            rows={3}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="partnership-type">Preferred Partnership Type</Label>
-                          <select className="w-full p-2 border rounded-md">
-                            <option value="">Select partnership type</option>
-                            <option value="reseller">Reseller</option>
-                            <option value="affiliate">Affiliate</option>
-                            <option value="white_label">White Label</option>
-                          </select>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          Submit Application
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
+                  <Button onClick={() => setIsOnboardingOpen(true)} className="w-full">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Apply
+                  </Button>
 
                   <Button 
                     onClick={handleStartChat} 
@@ -603,6 +559,14 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Partner Onboarding Modal */}
+      <PartnerOnboarding
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        productId={product.id}
+        productName={product.name}
+      />
     </div>
   );
 };
