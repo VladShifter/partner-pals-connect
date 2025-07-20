@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText } from "lucide-react";
+import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText, PlayCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
@@ -271,6 +271,36 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
+                {/* Demo Video */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center">
+                    <PlayCircle className="w-5 h-5 mr-2" />
+                    Product Demo
+                  </h3>
+                  <div className="aspect-video rounded-lg overflow-hidden">
+                    {vendor?.demo_video_file_url ? (
+                      <video
+                        src={vendor.demo_video_file_url}
+                        controls
+                        className="w-full h-full object-cover"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                        title="Product Demo"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-3">
                   <Button onClick={handleStartChat} size="lg">
                     <MessageSquare className="w-4 h-4 mr-2" />
@@ -282,40 +312,6 @@ const ProductDetail = () => {
                       Visit Website
                     </a>
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Demo Video */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Demo</CardTitle>
-                <CardDescription>
-                  See how the platform works in action
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video rounded-lg overflow-hidden">
-                  {vendor?.demo_video_file_url ? (
-                    <video
-                      src={vendor.demo_video_file_url}
-                      controls
-                      className="w-full h-full object-cover"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                      title="Product Demo"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  )}
                 </div>
               </CardContent>
             </Card>
