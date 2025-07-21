@@ -84,7 +84,7 @@ const Marketplace = () => {
           tags: tags,
           slug: product.slug || product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
           partner_terms: getDefaultPartnerTerms(),
-          image: getProductImage(product.vendors?.niche),
+          image: product.image_url || getProductImage(product.vendors?.niche),
           commission_rate: product.commission_rate,
           average_deal_size: product.average_deal_size,
           annual_income_potential: product.annual_income_potential,

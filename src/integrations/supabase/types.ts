@@ -411,6 +411,7 @@ export type Database = {
           getting_customers: string[] | null
           id: string
           ideal_resellers: string[] | null
+          image_url: string | null
           launch_steps: string[] | null
           name: string
           price: number | null
@@ -436,6 +437,7 @@ export type Database = {
           getting_customers?: string[] | null
           id?: string
           ideal_resellers?: string[] | null
+          image_url?: string | null
           launch_steps?: string[] | null
           name: string
           price?: number | null
@@ -461,6 +463,7 @@ export type Database = {
           getting_customers?: string[] | null
           id?: string
           ideal_resellers?: string[] | null
+          image_url?: string | null
           launch_steps?: string[] | null
           name?: string
           price?: number | null

@@ -22,7 +22,7 @@ interface Product {
   tags: Tag[];
   slug: string;
   partner_terms: Record<string, { margin_pct: number; notes: string }>;
-  image?: string;
+  image?: string; // This will contain either product.image_url or fallback image
   commission_rate?: number;
   average_deal_size?: number;
   annual_income_potential?: number;

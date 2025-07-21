@@ -20,6 +20,7 @@ interface ProductFormData {
   slug: string;
   description: string;
   extended_description?: string;
+  image_url?: string;
   price: number | null;
   commission_rate: number | null;
   status: string;
@@ -58,6 +59,7 @@ export default function ProductServiceEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
   const { toast } = useToast();
 
   const generateSlug = (name: string) => {
@@ -75,6 +77,7 @@ export default function ProductServiceEdit() {
       slug: '',
       description: '',
       extended_description: '',
+      image_url: '',
       price: null,
       commission_rate: null,
       status: 'pending',
@@ -159,6 +162,7 @@ export default function ProductServiceEdit() {
       slug: data.slug || generateSlug(data.name || ''),
       description: data.description || '',
       extended_description: data.extended_description || '',
+      image_url: data.image_url || '',
       price: data.price,
       commission_rate: data.commission_rate,
       status: data.status || 'pending',
@@ -342,6 +346,53 @@ export default function ProductServiceEdit() {
       });
     } finally {
       setUploadingVideo(false);
+    }
+  };
+
+  const handleProductImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingProductImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${vendorId}/product-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('editor-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('editor-images')
+        .getPublicUrl(fileName);
+
+      // Update form with the new image URL
+      form.setValue('image_url', data.publicUrl);
+      
+      toast({
+        title: "Success",
+        description: "Product image uploaded successfully"
+      });
+    } catch (error: any) {
+      console.error('Error uploading product image:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload product image",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingProductImage(false);
     }
   };
 
@@ -539,6 +590,55 @@ export default function ProductServiceEdit() {
                               className="min-h-[100px]"
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="image_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product Image</FormLabel>
+                          <div className="space-y-4">
+                            {field.value && (
+                              <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                                <img 
+                                  src={field.value} 
+                                  alt="Product" 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            )}
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProductImageUpload}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                disabled={uploadingProductImage}
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                className="w-full"
+                                disabled={uploadingProductImage}
+                              >
+                                {uploadingProductImage ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                                    Uploading...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Image className="w-4 h-4 mr-2" />
+                                    Upload Product Image
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
