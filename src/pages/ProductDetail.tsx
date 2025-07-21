@@ -235,10 +235,11 @@ const ProductDetail = () => {
               <CardContent>
                 {/* Extended Description */}
                 {product.extended_description && (
-                  <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                    <p className="text-sm leading-relaxed">
-                      {product.extended_description}
-                    </p>
+                  <div className="mb-6 p-4 bg-muted/30 rounded-lg prose prose-sm max-w-none">
+                    <div 
+                      className="text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: product.extended_description }}
+                    />
                   </div>
                 )}
 
