@@ -66,7 +66,7 @@ const OnboardPartner = () => {
   const productId = searchParams.get('productId') || '';
   const productName = searchParams.get('productName') || '';
 
-  const totalSteps = 6;
+  const totalSteps = 5;
 
   const [applicationData, setApplicationData] = useState<ApplicationData>({
     email: "",
@@ -387,6 +387,41 @@ const OnboardPartner = () => {
                   ))}
                 </div>
 
+                {/* Previous Partnership Experience */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Do you have experience with these types of partnerships?</Label>
+                  <RadioGroup
+                    value={applicationData.previous_partnerships}
+                    onValueChange={(value) => updateField("previous_partnerships", value)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="experience-yes" />
+                      <Label htmlFor="experience-yes">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="experience-no" />
+                      <Label htmlFor="experience-no">No</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="other" id="experience-other" />
+                      <Label htmlFor="experience-other">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Additional Info Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="why_interested">Why are you interested in this partnership?</Label>
+                  <Textarea
+                    id="why_interested"
+                    placeholder="Tell us what attracts you to this opportunity..."
+                    value={applicationData.why_interested}
+                    onChange={(e) => updateField("why_interested", e.target.value)}
+                    rows={4}
+                    required
+                  />
+                </div>
+
                 <div className="flex justify-between pt-4">
                   <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -680,58 +715,6 @@ const OnboardPartner = () => {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Previous
                   </Button>
-                  <Button type="submit">
-                    Next Step
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 6: Additional Information */}
-        {currentStep === 6 && (
-          <Card className="border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
-                Additional Information
-              </CardTitle>
-              <CardDescription>
-                Final details to complete your application
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleNextStep} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="why_interested">Why are you interested in this partnership?</Label>
-                  <Textarea
-                    id="why_interested"
-                    placeholder="Tell us what attracts you to this opportunity..."
-                    value={applicationData.why_interested}
-                    onChange={(e) => updateField("why_interested", e.target.value)}
-                    rows={4}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="previous_partnerships">Previous Partnership Experience</Label>
-                  <Textarea
-                    id="previous_partnerships"
-                    placeholder="Describe any relevant partnership or reselling experience..."
-                    value={applicationData.previous_partnerships}
-                    onChange={(e) => updateField("previous_partnerships", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex justify-between pt-4">
-                  <Button type="button" variant="outline" onClick={() => setCurrentStep(5)}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Previous
-                  </Button>
                   <Button type="submit" disabled={isLoading}>
                     {isLoading ? "Submitting..." : "Submit Application"}
                   </Button>
@@ -740,6 +723,7 @@ const OnboardPartner = () => {
             </CardContent>
           </Card>
         )}
+
       </div>
     </div>
   );
