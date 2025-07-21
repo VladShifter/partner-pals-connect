@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 import { ROICalculator } from "@/components/ROICalculator";
-
+// Removed PartnerOnboarding import - now using navigation to onboarding page
 import { TagDisplay } from "@/components/TagDisplay";
 import { TagCategoryDisplay } from "@/components/TagCategoryDisplay";
 
