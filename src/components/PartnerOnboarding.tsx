@@ -66,49 +66,49 @@ const TOTAL_STEPS = 6;
 const partnerRoleOptions = [
   {
     value: "white_label",
-    label: "White Label",
+    label: "🏷️ White Label",
     description: "Rebrand and sell as your own product"
   },
   {
     value: "reseller",
-    label: "Reseller",
+    label: "🤝 Reseller",
     description: "Sell the product under original branding"
   },
   {
     value: "affiliate",
-    label: "Affiliate",
+    label: "📈 Affiliate",
     description: "Promote and earn commission on referrals"
   },
   {
     value: "referral",
-    label: "Referral",
+    label: "👥 Referral",
     description: "Refer clients and get paid per successful sale"
   },
   {
     value: "advisor",
-    label: "Advisor",
+    label: "🎯 Advisor",
     description: "Provide strategic guidance and consulting"
   },
   {
     value: "other",
-    label: "Other",
+    label: "⚡ Other",
     description: "Custom partnership arrangement"
   }
 ];
 
 const marketingChannelsOptions = [
-  "My Industry Networking Connections",
-  "Upselling to Current Clients",
-  "Social Media",
-  "Email Marketing",
-  "Content Marketing",
-  "SEO",
-  "Paid Advertising",
-  "Networking Events",
-  "Cold Outreach",
-  "Referrals",
-  "Webinars",
-  "Other"
+  "🤝 My Industry Networking Connections",
+  "📈 Upselling to Current Clients", 
+  "📱 Social Media",
+  "📧 Email Marketing",
+  "📝 Content Marketing",
+  "🔍 SEO",
+  "💰 Paid Advertising",
+  "🎯 Networking Events",
+  "📞 Cold Outreach",
+  "👥 Referrals",
+  "🎥 Webinars",
+  "⚡ Other"
 ];
 
 const individualTypeOptions = [
@@ -124,13 +124,13 @@ const individualTypeOptions = [
 ];
 
 const partnershipGoalsOptions = [
-  "Increase Revenue",
-  "Expand Service Portfolio", 
-  "Enter New Markets",
-  "Build Strategic Partnerships",
-  "Gain Reselling Experience",
-  "Create Passive Income",
-  "Other"
+  "💰 Increase Revenue",
+  "📊 Expand Service Portfolio", 
+  "🌍 Enter New Markets",
+  "🤝 Build Strategic Partnerships",
+  "📚 Gain Reselling Experience",
+  "💎 Create Passive Income",
+  "⚡ Other"
 ];
 
 export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
@@ -286,7 +286,8 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
         description: "We'll review your application and get back to you soon.",
       });
       
-      onClose();
+      // Redirect to success page instead of closing
+      window.location.href = '/partner/success';
     } catch (error) {
       toast({
         title: "Error",

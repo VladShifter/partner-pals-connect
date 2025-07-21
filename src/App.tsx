@@ -25,6 +25,7 @@ import AdminPartners from "./pages/admin/AdminPartners";
 import AdminApplications from "./pages/admin/AdminApplications";
 import AdminTags from "./pages/admin/AdminTags";
 import ProductServiceEdit from "./pages/admin/ProductServiceEdit";
+import PartnerSuccess from "./pages/PartnerSuccess";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboard/vendor" element={<OnboardVendor />} />
           <Route path="/onboard/partner" element={<OnboardPartner />} />
+          <Route path="/partner/success" element={<PartnerSuccess />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/chat/:threadId" element={<Chat />} />
