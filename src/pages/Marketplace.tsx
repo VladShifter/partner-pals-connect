@@ -116,7 +116,8 @@ const Marketplace = () => {
     const imageMap: { [key: string]: string } = {
       'SaaS': "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=240&fit=crop&crop=center",
       'E-commerce': "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=240&fit=crop&crop=center",
-      'Cybersecurity': "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=240&fit=crop&crop=center"
+      'Cybersecurity': "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=240&fit=crop&crop=center",
+      'EdTech': "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=400&h=240&fit=crop&crop=center"
     };
     return imageMap[niche || 'SaaS'] || imageMap['SaaS'];
   };

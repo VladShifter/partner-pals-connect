@@ -237,13 +237,16 @@ export default function ProductServiceEdit() {
         launch_steps: data.launch_steps.filter(item => item.trim() !== '')
       };
 
-      // Ensure image_url is included in the update
+      // Ensure image_url is included in the update - get the latest value from form
+      const currentImageUrl = form.getValues('image_url');
+      filteredData.image_url = currentImageUrl;
+      
       console.log('About to save product with data:', {
         id: filteredData.id,
         name: filteredData.name,
         image_url: filteredData.image_url,
         hasImageChanged,
-        formImageUrl: form.getValues('image_url')
+        formImageUrl: currentImageUrl
       });
 
       let result;
