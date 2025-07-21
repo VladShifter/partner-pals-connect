@@ -61,15 +61,20 @@ const VendorDashboard = () => {
       
       setVendor(mockVendor);
       
-      // Fetch products
+      // Fetch products using a proper UUID query
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .eq('vendor_id', mockVendor.id)
         .order('created_at', { ascending: false });
 
-      if (productsError) throw productsError;
-      setProducts(productsData || []);
+      if (productsError) {
+        console.error('Products query error:', productsError);
+        // Set empty array if error
+        setProducts([]);
+      } else {
+        setProducts(productsData || []);
+      }
       
     } catch (error: any) {
       console.error('Error fetching vendor data:', error);

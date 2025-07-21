@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, ArrowLeft, Building, Package, Plus, X, Mail, User, DollarSign, Handshake, Target, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,7 +33,8 @@ interface VendorData {
   
   // Step 4: Business model
   monetizationModel: string[];
-  averageDealSize: string;
+  monetizationOther?: string;
+  averageDealSize: string[];
   partnershipModels: string[];
   partnerProfiles: string[];
   partnerEarnings: string;
@@ -63,7 +65,7 @@ const OnboardVendor = () => {
     productPitch: "",
     demoUrl: "",
     monetizationModel: [],
-    averageDealSize: "",
+    averageDealSize: [],
     partnershipModels: [],
     partnerProfiles: [],
     partnerEarnings: "",
@@ -106,14 +108,34 @@ const OnboardVendor = () => {
     
     setTimeout(() => {
       toast({
-        title: "Welcome to Rezollo! 🎉",
-        description: "Your vendor account has been created successfully.",
+        title: "🎉 Application Submitted Successfully!",
+        description: "Your vendor application has been submitted for review. We'll contact you within 24-48 hours.",
       });
       navigate("/dashboard/vendor");
     }, 1000);
   };
 
-  const isWhiteLabelSelected = vendorData.partnershipModels.includes("Full white-label");
+  const isWhiteLabelSelected = vendorData.partnershipModels.includes("🏷️ Full white-label (sell under partner's brand)");
+
+  // Industry options from the tags system
+  const industryOptions = [
+    "AI SaaS", "Analytics", "E-commerce", "EdTech", "Energy", "FinTech", 
+    "GovTech", "Healthcare", "HoReCa", "Legal", "Logistics", "Manufacturing", 
+    "Marketing", "Productivity", "PropTech", "Retail", "Travel"
+  ];
+
+  // Partnership models synchronized with reseller onboarding individual type options
+  const individualTypeOptions = [
+    "🏢 System Integrator",
+    "👤 Solopreneur",
+    "👔 Entrepreneur", 
+    "🎯 Industry Expert",
+    "💼 Business Consultant",
+    "🏭 Agency Owner",
+    "🏢 Consulting Company",
+    "📢 Influencer",
+    "🔧 Other"
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -186,11 +208,11 @@ const OnboardVendor = () => {
           <Card className="border-0 shadow-xl">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Building className="w-5 h-5 mr-2 text-blue-600" />
-                Company Information
+                <Package className="w-5 h-5 mr-2 text-blue-600" />
+                Product/Service Information
               </CardTitle>
               <CardDescription>
-                Tell us about your company
+                Tell us about your company and main product/service
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -221,21 +243,25 @@ const OnboardVendor = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="niche">Niche/Industry</Label>
-                  <Input
-                    id="niche"
-                    type="text"
-                    placeholder="e.g., SaaS, E-commerce, Marketing"
-                    value={vendorData.niche}
-                    onChange={(e) => updateField("niche", e.target.value)}
-                    required
-                  />
+                  <Select value={vendorData.niche} onValueChange={(value) => updateField("niche", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {industryOptions.map((industry) => (
+                        <SelectItem key={industry} value={industry}>
+                          {industry}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Company Description</Label>
+                  <Label htmlFor="description">Product/Service Description</Label>
                   <Textarea
                     id="description"
-                    placeholder="What does your company do in 1-2 sentences..."
+                    placeholder="Describe your main product or service in 1-2 sentences..."
                     value={vendorData.description}
                     onChange={(e) => updateField("description", e.target.value)}
                     rows={3}
@@ -345,7 +371,8 @@ const OnboardVendor = () => {
                     {[
                       "💰 One-off purchase",
                       "🔄 Subscription",
-                      "📊 Usage-based (tokens, seats, etc.)"
+                      "📊 Usage-based (tokens, seats, etc.)",
+                      "🔧 Other"
                     ].map((option) => (
                       <div key={option} className="flex items-center space-x-2">
                         <Checkbox
@@ -360,20 +387,47 @@ const OnboardVendor = () => {
                         </Label>
                       </div>
                     ))}
+                    
+                    {/* Other field for monetization model */}
+                    {vendorData.monetizationModel.includes("🔧 Other") && (
+                      <div className="ml-6">
+                        <Input
+                          placeholder="Please specify..."
+                          value={vendorData.monetizationOther || ""}
+                          onChange={(e) => updateField("monetizationOther", e.target.value)}
+                          className="mt-2"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Average Deal Size */}
-                <div className="space-y-2">
-                  <Label htmlFor="averageDealSize">Average deal size (USD)</Label>
-                  <Input
-                    id="averageDealSize"
-                    type="text"
-                    placeholder="e.g., $5,000 or $500/month"
-                    value={vendorData.averageDealSize}
-                    onChange={(e) => updateField("averageDealSize", e.target.value)}
-                    required
-                  />
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Average deal size (USD)</Label>
+                  <p className="text-sm text-muted-foreground">Select monthly ranges that apply:</p>
+                  <div className="space-y-2">
+                    {[
+                      "💼 Up to $5,000/month",
+                      "💰 $5,000-$10,000/month",
+                      "🏢 $10,000-$20,000/month", 
+                      "🏭 $20,000-$50,000/month",
+                      "🚀 $50,000+/month"
+                    ].map((option) => (
+                      <div key={option} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`deal-size-${option}`}
+                          checked={vendorData.averageDealSize.includes(option)}
+                          onCheckedChange={(checked) =>
+                            handleCheckboxChange("averageDealSize", option, checked as boolean)
+                          }
+                        />
+                        <Label htmlFor={`deal-size-${option}`} className="text-sm font-normal">
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Partnership Models */}
@@ -405,13 +459,7 @@ const OnboardVendor = () => {
                 <div className="space-y-3">
                   <Label className="text-base font-medium">What partner profiles interest you?</Label>
                   <div className="space-y-2">
-                    {[
-                      "🏢 System integrators",
-                      "👤 Solopreneurs",
-                      "🎯 Industry experts",
-                      "📢 Influencers",
-                      "🔧 Other"
-                    ].map((option) => (
+                    {individualTypeOptions.map((option) => (
                       <div key={option} className="flex items-center space-x-2">
                         <Checkbox
                           id={`profiles-${option}`}
