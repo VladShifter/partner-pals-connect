@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,19 +22,51 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // TODO: Implement Supabase auth with email/password
-    console.log("Login attempt:", { email, password });
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get user profile to determine role and redirect
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .single();
+
       toast({
         title: "Logged in successfully!",
         description: "Welcome back to Rezollo.",
       });
+
+      // Navigate based on user role
+      switch (profile?.role) {
+        case 'admin':
+          navigate("/admin/overview");
+          break;
+        case 'vendor':
+          navigate("/dashboard/vendor");
+          break;
+        case 'partner':
+          navigate("/dashboard/partner");
+          break;
+        default:
+          navigate("/marketplace");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Authentication Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-      // TODO: Navigate based on user role
-      navigate("/dashboard/vendor");
-    }, 1000);
+    }
   };
 
   return (

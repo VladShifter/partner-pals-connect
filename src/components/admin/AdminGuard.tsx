@@ -14,14 +14,6 @@ export function AdminGuard({ children }: AdminGuardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Temporary bypass - check for temp admin email in localStorage
-    const tempEmail = localStorage.getItem('temp_admin_email');
-    if (tempEmail) {
-      setIsAdmin(true);
-      setLoading(false);
-      return;
-    }
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -75,7 +67,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  if (!isAdmin && !localStorage.getItem('temp_admin_email')) {
+  if (!isAdmin) {
     return <Navigate to="/admin/login" replace />;
   }
 
