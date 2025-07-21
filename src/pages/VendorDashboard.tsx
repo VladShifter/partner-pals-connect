@@ -34,8 +34,12 @@ const VendorDashboard = () => {
   const [editingVendor, setEditingVendor] = useState<any>(null);
   const { toast } = useToast();
 
-  // Mock user - in real app this would come from auth context
-  const currentUser = {
+  // Development mode - use mock user
+  const DEVELOPMENT_MODE = true;
+  const currentUser = DEVELOPMENT_MODE ? {
+    id: 'vendor-1',
+    email: 'vendor@demo.com'
+  } : {
     id: 'temp-user-id',
     email: localStorage.getItem('temp_admin_email') || 'admin@rezollo.com'
   };

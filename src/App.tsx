@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import DevModeNavigation from "@/components/DevModeNavigation";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -34,6 +35,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <DevModeNavigation />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -45,8 +47,8 @@ const App = () => (
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/chat/:threadId" element={<Chat />} />
-          <Route path="/dashboard/vendor" element={<VendorDashboard />} />
-          <Route path="/dashboard/partner" element={<PartnerDashboard />} />
+          <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+          <Route path="/partner/dashboard" element={<PartnerDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           
           {/* Admin routes */}
