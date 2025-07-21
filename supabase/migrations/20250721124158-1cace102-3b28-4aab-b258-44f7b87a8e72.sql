@@ -1,0 +1,1 @@
+-- The migration was already run successfully above
