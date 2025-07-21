@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 import { ROICalculator } from "@/components/ROICalculator";
-import { PartnerOnboarding } from "@/components/PartnerOnboarding";
+
 import { TagDisplay } from "@/components/TagDisplay";
 import { TagCategoryDisplay } from "@/components/TagCategoryDisplay";
 
@@ -26,7 +26,7 @@ const ProductDetail = () => {
   const [vendor, setVendor] = useState<any>(null);
   const [productTags, setProductTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  
   const [calculatorValues, setCalculatorValues] = useState({
     price: 1000,
     deals: 5,
@@ -304,7 +304,16 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button onClick={() => setIsOnboardingOpen(true)} size="lg">
+                  <Button 
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        productId: product.id,
+                        productName: product.name
+                      });
+                      navigate(`/onboard/partner?${params.toString()}`);
+                    }} 
+                    size="lg"
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Apply Now
                   </Button>
@@ -532,7 +541,16 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Button onClick={() => setIsOnboardingOpen(true)} className="w-full">
+                  <Button 
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        productId: product.id,
+                        productName: product.name
+                      });
+                      navigate(`/onboard/partner?${params.toString()}`);
+                    }}
+                    className="w-full"
+                  >
                     <FileText className="w-4 h-4 mr-2" />
                     Apply
                   </Button>
@@ -560,13 +578,6 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* Partner Onboarding Modal */}
-      <PartnerOnboarding
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        productId={product.id}
-        productName={product.name}
-      />
     </div>
   );
 };
