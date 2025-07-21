@@ -43,9 +43,7 @@ const ProductServiceEdit: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [hasImageChanged, setHasImageChanged] = useState(false);
 
   const form = useForm<ProductFormData>({
     defaultValues: {
@@ -74,7 +72,6 @@ const ProductServiceEdit: React.FC = () => {
   useEffect(() => {
     const subscription = form.watch(() => {
       setHasUnsavedChanges(true);
-      setUploadSuccess(false); // Reset upload success when form changes
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -110,7 +107,6 @@ const ProductServiceEdit: React.FC = () => {
 
     try {
       setLoading(true);
-      console.log('Fetching product data for ID:', productId);
       
       const { data, error } = await supabase
         .from('products')
@@ -119,13 +115,6 @@ const ProductServiceEdit: React.FC = () => {
         .single();
 
       if (error) throw error;
-
-      console.log('Fetched product data:', {
-        id: data.id,
-        name: data.name,
-        image_url: data.image_url,
-        hasImage: !!data.image_url
-      });
 
       // Only populate form if we have data and haven't made unsaved changes
       if (data && !hasUnsavedChanges) {
@@ -153,12 +142,6 @@ const ProductServiceEdit: React.FC = () => {
   };
 
   const populateForm = (data: any) => {
-    console.log('Populating form with data:', {
-      name: data.name,
-      image_url: data.image_url,
-      hasCurrentImage: !!data.image_url
-    });
-
     const formData = {
       ...data,
       slug: data.slug || generateSlug(data.name || ''),
@@ -172,8 +155,6 @@ const ProductServiceEdit: React.FC = () => {
 
     form.reset(formData);
     setHasUnsavedChanges(false);
-    setHasImageChanged(false);
-    console.log('Form populated with image_url:', form.getValues('image_url'));
   };
 
   const handleProductImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -203,21 +184,12 @@ const ProductServiceEdit: React.FC = () => {
     }
 
     setUploading(true);
-    setUploadSuccess(false);
 
     try {
-      console.log('Starting image upload:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      });
-
       // Create unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `products/${fileName}`;
-
-      console.log('Uploading to path:', filePath);
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -227,12 +199,7 @@ const ProductServiceEdit: React.FC = () => {
           upsert: false
         });
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-
-      console.log('Upload successful:', uploadData);
+      if (uploadError) throw uploadError;
 
       // Get public URL
       const { data: urlData } = supabase.storage
@@ -240,23 +207,14 @@ const ProductServiceEdit: React.FC = () => {
         .getPublicUrl(filePath);
 
       const publicUrl = urlData.publicUrl;
-      console.log('Generated public URL:', publicUrl);
 
       // Update form with new image URL
       form.setValue('image_url', publicUrl);
-      setHasImageChanged(true);
       setHasUnsavedChanges(true);
-      setUploadSuccess(true);
-
-      console.log('Form updated with image URL:', {
-        imageUrl: publicUrl,
-        formValue: form.getValues('image_url'),
-        hasImageChanged: true
-      });
 
       toast({
         title: "Success",
-        description: "Product image uploaded successfully. Don't forget to save your changes!"
+        description: "Product image uploaded successfully"
       });
 
     } catch (error: any) {
@@ -296,16 +254,8 @@ const ProductServiceEdit: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('Starting product save with data:', {
-        id: data.id || productId,
-        name: data.name,
-        image_url: data.image_url,
-        hasImageChanged,
-        hasUnsavedChanges
-      });
-
       // Filter out empty strings from arrays
-      const baseData = {
+      const saveData = {
         ...data,
         features: data.features.filter(item => item.trim() !== ''),
         reseller_benefits: data.reseller_benefits.filter(item => item.trim() !== ''),
@@ -314,58 +264,25 @@ const ProductServiceEdit: React.FC = () => {
         launch_steps: data.launch_steps.filter(item => item.trim() !== '')
       };
 
-      // CRITICAL: Always include image_url in the save data
-      const saveData = {
-        ...baseData,
-        image_url: data.image_url // Explicitly include image_url
-      };
-
-      console.log('Final save data:', {
-        id: saveData.id,
-        name: saveData.name,
-        image_url: saveData.image_url,
-        allFields: Object.keys(saveData)
-      });
-
       let result;
       if (productId) {
         // Update existing product
-        console.log('Updating product with ID:', productId);
         result = await supabase
           .from('products')
           .update(saveData)
           .eq('id', productId)
-          .select(); // Add select to get the updated data
-
-        console.log('Update result:', result);
+          .select();
       } else {
         // Create new product
-        console.log('Creating new product');
         result = await supabase
           .from('products')
           .insert([saveData])
-          .select(); // Add select to get the created data
+          .select();
       }
 
-      if (result.error) {
-        console.error('Database error:', result.error);
-        throw result.error;
-      }
-
-      // Verify the save was successful
-      if (result.data && result.data.length > 0) {
-        const savedProduct = result.data[0];
-        console.log('Product saved successfully:', {
-          id: savedProduct.id,
-          name: savedProduct.name,
-          image_url: savedProduct.image_url,
-          savedCorrectly: savedProduct.image_url === data.image_url
-        });
-      }
+      if (result.error) throw result.error;
 
       setHasUnsavedChanges(false);
-      setHasImageChanged(false);
-      setUploadSuccess(false);
 
       toast({
         title: "Success",
@@ -473,17 +390,7 @@ const ProductServiceEdit: React.FC = () => {
                       src={currentImageUrl} 
                       alt="Product preview"
                       className="w-full max-w-md h-48 object-cover rounded-lg border"
-                      onError={(e) => {
-                        console.error('Image failed to load:', currentImageUrl);
-                        e.currentTarget.style.display = 'none';
-                      }}
                     />
-                    {uploadSuccess && (
-                      <Badge className="absolute top-2 right-2 bg-green-600">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Uploaded
-                      </Badge>
-                    )}
                   </div>
                 )}
                 

@@ -32,8 +32,6 @@ const Marketplace = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      console.log('Fetching products for marketplace...');
-      
       // Fetch all tags first
       const { data: tagsData, error: tagsError } = await supabase
         .from('tags')
@@ -73,21 +71,12 @@ const Marketplace = () => {
 
       if (error) throw error;
 
-      console.log('Raw products data:', productsData);
-
       // Transform data to match the expected format
       const transformedProducts = (productsData || []).map(product => {
         const tags = product.product_tags?.map(pt => pt.tags).filter(Boolean) || [];
         
-        // CRITICAL: Use actual product image_url from database, fallback to niche-based image only if no image_url
+        // Use actual product image_url from database, fallback to niche-based image only if no image_url
         const productImage = product.image_url || getProductImage(product.vendors?.niche);
-        
-        console.log(`Product: ${product.name}`, {
-          database_image_url: product.image_url,
-          vendor_niche: product.vendors?.niche,
-          final_image: productImage,
-          using_database_image: !!product.image_url
-        });
         
         return {
           id: product.id,
@@ -98,19 +87,13 @@ const Marketplace = () => {
           tags: tags,
           slug: product.slug || product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
           partner_terms: getDefaultPartnerTerms(),
-          image: productImage, // This is the final image that will be displayed
+          image: productImage,
           commission_rate: product.commission_rate,
           average_deal_size: product.average_deal_size,
           annual_income_potential: product.annual_income_potential,
           setup_fee: product.setup_fee
         };
       });
-
-      console.log('Transformed products for marketplace:', transformedProducts.map(p => ({
-        name: p.title,
-        image: p.image,
-        hasCustomImage: p.image && !p.image.includes('unsplash.com')
-      })));
 
       setProducts(transformedProducts);
     } catch (error) {
