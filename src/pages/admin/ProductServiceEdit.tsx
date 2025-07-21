@@ -500,7 +500,7 @@ const ProductServiceEdit: React.FC = () => {
                     type="button"
                     variant="outline"
                     disabled={uploading}
-                    onClick={() => document.querySelector('input[type="file"]')?.click()}
+                    onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
                   >
                     {uploading ? (
                       <>
