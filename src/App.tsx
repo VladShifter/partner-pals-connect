@@ -35,8 +35,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <DevModeNavigation />
       <BrowserRouter>
+        <DevModeNavigation />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
