@@ -75,6 +75,13 @@ const Marketplace = () => {
       const transformedProducts = (productsData || []).map(product => {
         const tags = product.product_tags?.map(pt => pt.tags).filter(Boolean) || [];
         
+        // Debug: Log product image data
+        console.log(`Product: ${product.name}`, {
+          image_url: product.image_url,
+          fallback_image: getProductImage(product.vendors?.niche),
+          using: product.image_url || 'fallback'
+        });
+        
         return {
           id: product.id,
           title: product.name,

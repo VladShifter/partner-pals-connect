@@ -228,10 +228,18 @@ export default function ProductServiceEdit() {
         launch_steps: data.launch_steps.filter(item => item.trim() !== '')
       };
 
+      // Debug: Log what we're saving
+      console.log('Saving product with data:', {
+        name: filteredData.name,
+        image_url: filteredData.image_url,
+        all_data: filteredData
+      });
+
       let result;
       if (product?.id || data.id) {
         // Update existing product
         const updateId = product?.id || data.id;
+        console.log('Updating product ID:', updateId);
         result = await supabase
           .from('products')
           .update(filteredData)
