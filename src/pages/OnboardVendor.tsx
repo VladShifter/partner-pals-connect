@@ -38,6 +38,7 @@ interface VendorData {
   partnershipModels: string[];
   partnerProfiles: string[];
   partnerEarnings: string;
+  interestedRegions: string[];
   
   // White-label specific (only if full white-label selected)
   isWhiteLabelReady?: string;
@@ -69,6 +70,7 @@ const OnboardVendor = () => {
     partnershipModels: [],
     partnerProfiles: [],
     partnerEarnings: "",
+    interestedRegions: [],
   });
 
   const updateField = (field: keyof VendorData, value: any) => {
@@ -115,7 +117,7 @@ const OnboardVendor = () => {
     }, 1000);
   };
 
-  const isWhiteLabelSelected = vendorData.partnershipModels.includes("🏷️ Full white-label (sell under partner's brand)");
+  const isWhiteLabelSelected = vendorData.partnershipModels.includes("white_label");
 
   // Industry options from the tags system
   const industryOptions = [
@@ -124,7 +126,41 @@ const OnboardVendor = () => {
     "Marketing", "Productivity", "PropTech", "Retail", "Travel"
   ];
 
-  // Partnership models synchronized with reseller onboarding individual type options
+  // Partnership models synchronized with reseller onboarding
+  const partnershipModelOptions = [
+    {
+      value: "white_label",
+      label: "🏷️ White Label",
+      description: "Rebrand and sell as your own product"
+    },
+    {
+      value: "reseller",
+      label: "🤝 Reseller",
+      description: "Sell the product under original branding"
+    },
+    {
+      value: "affiliate",
+      label: "📈 Affiliate",
+      description: "Promote and earn commission on referrals"
+    },
+    {
+      value: "referral",
+      label: "👥 Referral",
+      description: "Refer clients and get paid per successful sale"
+    },
+    {
+      value: "advisor",
+      label: "🎯 Advisor",
+      description: "Provide strategic guidance and consulting"
+    },
+    {
+      value: "other",
+      label: "⚡ Other",
+      description: "Custom partnership arrangement"
+    }
+  ];
+
+  // Partner profile options
   const individualTypeOptions = [
     "🏢 System Integrator",
     "👤 Solopreneur",
@@ -135,6 +171,17 @@ const OnboardVendor = () => {
     "🏢 Consulting Company",
     "📢 Influencer",
     "🔧 Other"
+  ];
+
+  // Region options
+  const regionOptions = [
+    "Any",
+    "North America",
+    "Europe",
+    "Asia Pacific",
+    "Latin America",
+    "Africa",
+    "Middle East"
   ];
 
   return (
@@ -402,17 +449,17 @@ const OnboardVendor = () => {
                   </div>
                 </div>
 
-                {/* Average Deal Size */}
+                 {/* Average Deal Size */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium">Average deal size (USD)</Label>
                   <p className="text-sm text-muted-foreground">Select monthly ranges that apply:</p>
                   <div className="space-y-2">
                     {[
-                      "💼 Up to $5,000/month",
-                      "💰 $5,000-$10,000/month",
-                      "🏢 $10,000-$20,000/month", 
-                      "🏭 $20,000-$50,000/month",
-                      "🚀 $50,000+/month"
+                      "Up to $5,000/month",
+                      "$5,000-$10,000/month",
+                      "$10,000-$20,000/month", 
+                      "$20,000-$50,000/month",
+                      "$50,000+/month"
                     ].map((option) => (
                       <div key={option} className="flex items-center space-x-2">
                         <Checkbox
@@ -430,26 +477,25 @@ const OnboardVendor = () => {
                   </div>
                 </div>
 
-                {/* Partnership Models */}
+                 {/* Partnership Models */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium">Which partnership model(s) are you looking for?</Label>
-                  <div className="space-y-2">
-                    {[
-                      "🏷️ Full white-label (sell under partner's brand)",
-                      "🤝 Standard reseller",
-                      "🔧 Other"
-                    ].map((option) => (
-                      <div key={option} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`partnership-${option}`}
-                          checked={vendorData.partnershipModels.includes(option)}
-                          onCheckedChange={(checked) =>
-                            handleCheckboxChange("partnershipModels", option, checked as boolean)
-                          }
-                        />
-                        <Label htmlFor={`partnership-${option}`} className="text-sm font-normal">
-                          {option}
-                        </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {partnershipModelOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                          vendorData.partnershipModels.includes(option.value)
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => {
+                          const isSelected = vendorData.partnershipModels.includes(option.value);
+                          handleCheckboxChange("partnershipModels", option.value, !isSelected);
+                        }}
+                      >
+                        <div className="font-medium text-sm mb-1">{option.label}</div>
+                        <div className="text-xs text-gray-600">{option.description}</div>
                       </div>
                     ))}
                   </div>
@@ -476,7 +522,7 @@ const OnboardVendor = () => {
                   </div>
                 </div>
 
-                {/* Partner Earnings */}
+                 {/* Partner Earnings */}
                 <div className="space-y-2">
                   <Label htmlFor="partnerEarnings">How much can (or do) partners in your industry typically earn?</Label>
                   <Input
@@ -487,6 +533,27 @@ const OnboardVendor = () => {
                     onChange={(e) => updateField("partnerEarnings", e.target.value)}
                     required
                   />
+                </div>
+
+                 {/* Interested Regions */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">In which regions/countries are you interested in partners?</Label>
+                  <div className="space-y-2">
+                    {regionOptions.map((option) => (
+                      <div key={option} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`region-${option}`}
+                          checked={vendorData.interestedRegions.includes(option)}
+                          onCheckedChange={(checked) =>
+                            handleCheckboxChange("interestedRegions", option, checked as boolean)
+                          }
+                        />
+                        <Label htmlFor={`region-${option}`} className="text-sm font-normal">
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* White-label specific questions */}
