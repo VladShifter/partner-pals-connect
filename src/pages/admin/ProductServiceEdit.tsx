@@ -60,6 +60,7 @@ export default function ProductServiceEdit() {
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingProductImage, setUploadingProductImage] = useState(false);
+  const [hasImageChanged, setHasImageChanged] = useState(false); // Track if image was changed
   const { toast } = useToast();
 
   const generateSlug = (name: string) => {
@@ -105,6 +106,8 @@ export default function ProductServiceEdit() {
 
   const fetchData = async () => {
     try {
+      console.log('Fetching data for vendor:', vendorId);
+      
       // Fetch vendor info
       const { data: vendorData, error: vendorError } = await supabase
         .from('vendors')
@@ -113,6 +116,7 @@ export default function ProductServiceEdit() {
         .single();
 
       if (vendorError) throw vendorError;
+      console.log('Vendor data:', vendorData);
       setVendor(vendorData);
 
       // Fetch product for this vendor
@@ -128,8 +132,12 @@ export default function ProductServiceEdit() {
       }
 
       if (productData) {
+        console.log('Product data from DB:', productData);
         setProduct(productData);
-        populateForm(productData);
+        // Only populate form if image hasn't been changed by user
+        if (!hasImageChanged) {
+          populateForm(productData);
+        }
       }
 
       // Fetch product tags
@@ -156,6 +164,7 @@ export default function ProductServiceEdit() {
   };
 
   const populateForm = (data: any) => {
+    console.log('Populating form with data:', data);
     form.reset({
       id: data.id,
       name: data.name || '',
@@ -228,11 +237,13 @@ export default function ProductServiceEdit() {
         launch_steps: data.launch_steps.filter(item => item.trim() !== '')
       };
 
-      // Debug: Log what we're saving
-      console.log('Saving product with data:', {
+      // Ensure image_url is included in the update
+      console.log('About to save product with data:', {
+        id: filteredData.id,
         name: filteredData.name,
         image_url: filteredData.image_url,
-        all_data: filteredData
+        hasImageChanged,
+        formImageUrl: form.getValues('image_url')
       });
 
       let result;
@@ -240,7 +251,7 @@ export default function ProductServiceEdit() {
         // Update existing product
         const updateId = product?.id || data.id;
         console.log('Updating product ID:', updateId);
-        console.log('Data being sent to update:', filteredData);
+        console.log('Complete data being sent to update:', filteredData);
         
         result = await supabase
           .from('products')
@@ -249,11 +260,28 @@ export default function ProductServiceEdit() {
           .select();
           
         console.log('Update result:', result);
+        
+        if (result.error) {
+          console.error('Database update error:', result.error);
+          throw result.error;
+        }
+        
+        // Verify the update worked
+        if (result.data && result.data.length > 0) {
+          console.log('Product updated successfully:', result.data[0]);
+          // Update local product state with the saved data
+          setProduct(result.data[0]);
+        }
       } else {
         // Create new product
         result = await supabase
           .from('products')
-          .insert([filteredData]);
+          .insert([filteredData])
+          .select();
+          
+        if (result.data && result.data.length > 0) {
+          setProduct(result.data[0]);
+        }
       }
 
       if (result.error) throw result.error;
@@ -308,8 +336,16 @@ export default function ProductServiceEdit() {
         description: `Product ${product?.id || data.id ? 'updated' : 'created'} successfully`
       });
 
-      // Refresh data
-      fetchData();
+      // Reset the image changed flag since we've saved successfully
+      setHasImageChanged(false);
+      
+      // Don't refetch data immediately after saving to avoid overwriting the form
+      // Only refetch if there's no image change to preserve user changes
+      if (!hasImageChanged) {
+        setTimeout(() => {
+          fetchData();
+        }, 1000);
+      }
     } catch (error: any) {
       console.error('Error saving product:', error);
       toast({
@@ -402,6 +438,8 @@ export default function ProductServiceEdit() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${vendorId}/product-${Date.now()}.${fileExt}`;
 
+      console.log('Uploading product image:', fileName);
+
       const { error: uploadError } = await supabase.storage
         .from('editor-images')
         .upload(fileName, file);
@@ -412,12 +450,15 @@ export default function ProductServiceEdit() {
         .from('editor-images')
         .getPublicUrl(fileName);
 
-      // Update form with the new image URL
+      console.log('Product image uploaded successfully:', data.publicUrl);
+
+      // Update form with the new image URL and mark as changed
       form.setValue('image_url', data.publicUrl);
+      setHasImageChanged(true);
       
       toast({
         title: "Success",
-        description: "Product image uploaded successfully"
+        description: "Product image uploaded successfully. Don't forget to save changes!"
       });
     } catch (error: any) {
       console.error('Error uploading product image:', error);
@@ -644,6 +685,13 @@ export default function ProductServiceEdit() {
                                   alt="Product" 
                                   className="w-full h-full object-cover"
                                 />
+                                {hasImageChanged && (
+                                  <div className="absolute top-2 right-2">
+                                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                      Not saved
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
                             )}
                             <div className="relative">
