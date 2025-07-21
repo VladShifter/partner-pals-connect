@@ -56,11 +56,19 @@ const Signup = () => {
         description: "Your account has been created successfully.",
       });
       setIsLoading(false);
-      // TODO: Redirect to appropriate onboarding
+      
+      // Pass user data to onboarding via URL params
+      const params = new URLSearchParams({
+        email,
+        name,
+        company,
+        fromSignup: 'true'
+      });
+      
       if (role === "vendor") {
-        navigate("/onboard/vendor");
+        navigate(`/onboard/vendor?${params.toString()}`);
       } else {
-        navigate("/onboard/partner");
+        navigate(`/onboard/partner?${params.toString()}`);
       }
     }, 1000);
   };

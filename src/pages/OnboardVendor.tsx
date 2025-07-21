@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,17 +48,26 @@ interface VendorData {
 }
 
 const OnboardVendor = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Check if user came from signup page
+  const fromSignup = searchParams.get('fromSignup') === 'true';
+  const signupEmail = searchParams.get('email') || '';
+  const signupName = searchParams.get('name') || '';
+  const signupCompany = searchParams.get('company') || '';
+  
+  // Start from step 2 if coming from signup, otherwise step 1
+  const [currentStep, setCurrentStep] = useState(fromSignup ? 2 : 1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 4;
 
   const [vendorData, setVendorData] = useState<VendorData>({
-    email: "",
-    name: "",
-    companyName: "",
+    email: fromSignup ? signupEmail : "",
+    name: fromSignup ? signupName : "",
+    companyName: fromSignup ? signupCompany : "",
     website: "",
     niche: "",
     description: "",
@@ -317,9 +326,9 @@ const OnboardVendor = () => {
                 </div>
 
                 <div className="flex justify-between pt-4">
-                  <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
+                  <Button type="button" variant="outline" onClick={() => fromSignup ? navigate("/") : setCurrentStep(1)}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Previous
+                    {fromSignup ? "Back to Home" : "Previous"}
                   </Button>
                   <Button type="submit">
                     Next Step

@@ -57,11 +57,19 @@ interface ApplicationData {
 }
 
 const OnboardPartner = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Check if user came from signup page
+  const fromSignup = searchParams.get('fromSignup') === 'true';
+  const signupEmail = searchParams.get('email') || '';
+  const signupName = searchParams.get('name') || '';
+  const signupCompany = searchParams.get('company') || '';
+  
+  // Start from step 2 if coming from signup, otherwise step 1
+  const [currentStep, setCurrentStep] = useState(fromSignup ? 2 : 1);
+  const [isLoading, setIsLoading] = useState(false);
   
   const productId = searchParams.get('productId') || '';
   const productName = searchParams.get('productName') || '';
@@ -69,12 +77,12 @@ const OnboardPartner = () => {
   const totalSteps = 5;
 
   const [applicationData, setApplicationData] = useState<ApplicationData>({
-    email: "",
-    name: "",
+    email: fromSignup ? signupEmail : "",
+    name: fromSignup ? signupName : "",
     phone: "",
     partner_roles: [],
-    entity_type: 'individual',
-    company_name: "",
+    entity_type: 'company',
+    company_name: fromSignup ? signupCompany : "",
     company_description: "",
     website_url: "",
     country: "",
@@ -90,8 +98,8 @@ const OnboardPartner = () => {
     why_interested: "",
     previous_partnerships: "",
     partnership_goals: [],
-    current_step: 1,
-    completed_steps: [1],
+    current_step: fromSignup ? 2 : 1,
+    completed_steps: fromSignup ? [1, 2] : [1],
     product_id: productId,
   });
 
@@ -423,9 +431,9 @@ const OnboardPartner = () => {
                 </div>
 
                 <div className="flex justify-between pt-4">
-                  <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
+                  <Button type="button" variant="outline" onClick={() => fromSignup ? navigate("/") : setCurrentStep(1)}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Previous
+                    {fromSignup ? "Back to Home" : "Previous"}
                   </Button>
                   <Button type="submit" disabled={applicationData.partner_roles.length === 0}>
                     Next Step
