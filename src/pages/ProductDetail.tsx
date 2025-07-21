@@ -41,10 +41,10 @@ const ProductDetail = () => {
     try {
       setLoading(true);
       
-      // Convert slug to product name (cloudcrm-pro -> CloudCRM Pro)
+      // Convert slug to product name (ai-powered-training-platform -> AI-Powered Training Platform)
       const productName = slug?.split('-').map(word => 
         word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ').replace('Crm', 'CRM') || '';
+      ).join(' ').replace('Ai', 'AI').replace('Crm', 'CRM') || '';
       
       console.log('Looking for product:', productName);
       
