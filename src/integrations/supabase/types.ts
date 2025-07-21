@@ -44,11 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       partner_applications: {
         Row: {
           active_marketing_channels: string | null
           audience_size: string | null
           business_model: string | null
+          communication_preference: string | null
           company_description: string | null
           company_name: string | null
           completed_steps: number[] | null
@@ -63,6 +97,7 @@ export type Database = {
           industry: string | null
           marketing_channels: string[] | null
           monthly_revenue: number | null
+          multiple_products: boolean | null
           name: string | null
           partner_roles: string[] | null
           partnership_goals: string[] | null
@@ -70,12 +105,15 @@ export type Database = {
           previous_partnerships: string | null
           product_id: string | null
           revenue_goals: number | null
+          scheduled_call_date: string | null
           social_profiles: string | null
           status: string | null
+          status_updated_at: string | null
           target_market: string | null
           team_size: number | null
           updated_at: string | null
           user_id: string | null
+          vendor_notes: string | null
           website_url: string | null
           why_interested: string | null
         }
@@ -83,6 +121,7 @@ export type Database = {
           active_marketing_channels?: string | null
           audience_size?: string | null
           business_model?: string | null
+          communication_preference?: string | null
           company_description?: string | null
           company_name?: string | null
           completed_steps?: number[] | null
@@ -97,6 +136,7 @@ export type Database = {
           industry?: string | null
           marketing_channels?: string[] | null
           monthly_revenue?: number | null
+          multiple_products?: boolean | null
           name?: string | null
           partner_roles?: string[] | null
           partnership_goals?: string[] | null
@@ -104,12 +144,15 @@ export type Database = {
           previous_partnerships?: string | null
           product_id?: string | null
           revenue_goals?: number | null
+          scheduled_call_date?: string | null
           social_profiles?: string | null
           status?: string | null
+          status_updated_at?: string | null
           target_market?: string | null
           team_size?: number | null
           updated_at?: string | null
           user_id?: string | null
+          vendor_notes?: string | null
           website_url?: string | null
           why_interested?: string | null
         }
@@ -117,6 +160,7 @@ export type Database = {
           active_marketing_channels?: string | null
           audience_size?: string | null
           business_model?: string | null
+          communication_preference?: string | null
           company_description?: string | null
           company_name?: string | null
           completed_steps?: number[] | null
@@ -131,6 +175,7 @@ export type Database = {
           industry?: string | null
           marketing_channels?: string[] | null
           monthly_revenue?: number | null
+          multiple_products?: boolean | null
           name?: string | null
           partner_roles?: string[] | null
           partnership_goals?: string[] | null
@@ -138,12 +183,15 @@ export type Database = {
           previous_partnerships?: string | null
           product_id?: string | null
           revenue_goals?: number | null
+          scheduled_call_date?: string | null
           social_profiles?: string | null
           status?: string | null
+          status_updated_at?: string | null
           target_market?: string | null
           team_size?: number | null
           updated_at?: string | null
           user_id?: string | null
+          vendor_notes?: string | null
           website_url?: string | null
           why_interested?: string | null
         }
@@ -153,6 +201,44 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_chats: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          id: string
+          partner_id: string
+          thread_id: string
+          updated_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          thread_id: string
+          updated_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          thread_id?: string
+          updated_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_chats_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "partner_applications"
             referencedColumns: ["id"]
           },
         ]
@@ -544,6 +630,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          target_user_id: string
+          notification_type: string
+          notification_title: string
+          notification_message: string
+          notification_data?: Json
+        }
+        Returns: string
+      }
       get_commission_range_tag: {
         Args: { commission_rate: number }
         Returns: string

@@ -276,7 +276,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     try {
       const { error } = await supabase
         .from("partner_applications")
-        .update({ status: "completed", current_step: TOTAL_STEPS })
+        .update({ status: "submitted", current_step: TOTAL_STEPS })
         .eq("id", applicationData.id);
       
       if (error) throw error;

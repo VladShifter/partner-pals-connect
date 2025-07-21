@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductForm } from "@/components/vendor/ProductForm";
 import { VendorForm } from "@/components/vendor/VendorForm";
+import { PartnerApplications } from "@/components/vendor/PartnerApplications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -201,6 +202,7 @@ const VendorDashboard = () => {
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="applications">Partner Applications</TabsTrigger>
             <TabsTrigger value="chats">Active Chats</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -252,6 +254,11 @@ const VendorDashboard = () => {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          {/* Partner Applications Tab */}
+          <TabsContent value="applications">
+            <PartnerApplications vendorId={vendor?.id} />
           </TabsContent>
 
           {/* Chats Tab */}
