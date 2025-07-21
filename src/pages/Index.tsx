@@ -147,11 +147,12 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">Rezollo</span>
+              <div className="mb-4">
+                <img 
+                  src="/lovable-uploads/3aa30cb7-3c3c-46bb-802c-e23b01b0aceb.png" 
+                  alt="Rezollo"
+                  className="h-8 w-auto"
+                />
               </div>
               <p className="text-gray-400">
                 The ultimate B2B partnership marketplace for modern businesses.

@@ -30,10 +30,11 @@ const Header = ({ user }: HeaderProps) => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Rezollo</span>
+              <img 
+                src="/lovable-uploads/3aa30cb7-3c3c-46bb-802c-e23b01b0aceb.png" 
+                alt="Rezollo"
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
 
