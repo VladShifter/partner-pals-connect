@@ -419,6 +419,7 @@ export type Database = {
           roi_default_deals_per_month: number | null
           roi_monthly_fee: number | null
           setup_fee: number | null
+          slug: string
           status: string | null
           updated_at: string | null
           vendor_id: string | null
@@ -443,6 +444,7 @@ export type Database = {
           roi_default_deals_per_month?: number | null
           roi_monthly_fee?: number | null
           setup_fee?: number | null
+          slug: string
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -467,6 +469,7 @@ export type Database = {
           roi_default_deals_per_month?: number | null
           roi_monthly_fee?: number | null
           setup_fee?: number | null
+          slug?: string
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -638,6 +641,10 @@ export type Database = {
           notification_message: string
           notification_data?: Json
         }
+        Returns: string
+      }
+      generate_slug: {
+        Args: { input_text: string }
         Returns: string
       }
       get_commission_range_tag: {

@@ -82,7 +82,7 @@ const Marketplace = () => {
           niche: product.vendors?.niche || 'General',
           pitch: product.description || product.vendors?.pitch || '',
           tags: tags,
-          slug: product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
+          slug: product.slug || product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
           partner_terms: getDefaultPartnerTerms(),
           image: getProductImage(product.vendors?.niche),
           commission_rate: product.commission_rate,

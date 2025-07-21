@@ -41,47 +41,13 @@ const ProductDetail = () => {
     try {
       setLoading(true);
       
-      // Convert slug to product name with proper handling of compound words
-      const convertSlugToProductName = (slug: string) => {
-        // Handle special compound words that should keep their hyphens
-        const compoundWords = {
-          'ai-powered': 'AI-Powered',
-          'crm-pro': 'CRM Pro',
-          'e-learning': 'E-Learning',
-          'self-service': 'Self-Service',
-          'multi-tenant': 'Multi-Tenant',
-          'real-time': 'Real-Time'
-        };
-        
-        // Check if the slug contains any compound words
-        for (const [compound, replacement] of Object.entries(compoundWords)) {
-          if (slug.includes(compound)) {
-            return slug.replace(compound, replacement)
-              .split('-')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')
-              .replace('Ai', 'AI')
-              .replace('Crm', 'CRM');
-          }
-        }
-        
-        // Default conversion for regular words
-        return slug.split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ')
-          .replace('Ai', 'AI')
-          .replace('Crm', 'CRM');
-      };
+      console.log('Looking for product with slug:', slug);
       
-      const productName = convertSlugToProductName(slug || '');
-      
-      console.log('Looking for product:', productName);
-      
-      // Fetch product by name
+      // Fetch product by slug
       const { data: productData, error: productError } = await supabase
         .from('products')
         .select('*')
-        .ilike('name', `%${productName}%`)
+        .eq('slug', slug)
         .eq('status', 'approved')
         .single();
 

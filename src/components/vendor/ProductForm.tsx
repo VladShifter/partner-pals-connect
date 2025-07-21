@@ -15,6 +15,7 @@ import { Plus, X } from 'lucide-react';
 interface Product {
   id?: string;
   name: string;
+  slug: string;
   description: string;
   extended_description?: string;
   price: number | null;
@@ -46,9 +47,19 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   const form = useForm<Product>({
     defaultValues: {
       name: '',
+      slug: '',
       description: '',
       extended_description: '',
       price: null,
@@ -70,6 +81,7 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
     if (product) {
       form.reset({
         ...product,
+        slug: product.slug || generateSlug(product.name),
         features: product.features && product.features.length > 0 ? product.features : [''],
         reseller_benefits: product.reseller_benefits && product.reseller_benefits.length > 0 ? product.reseller_benefits : [''],
         ideal_resellers: product.ideal_resellers && product.ideal_resellers.length > 0 ? product.ideal_resellers : [''],
@@ -84,6 +96,7 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
     } else {
       form.reset({
         name: '',
+        slug: '',
         description: '',
         extended_description: '',
         price: null,
@@ -167,6 +180,7 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
       // Filter out empty strings from arrays
       const filteredData = {
         ...data,
+        slug: data.slug || generateSlug(data.name),
         vendor_id: vendorId,
         features: data.features.filter(item => item.trim() !== ''),
         reseller_benefits: data.reseller_benefits.filter(item => item.trim() !== ''),

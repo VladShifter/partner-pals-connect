@@ -14,6 +14,7 @@ import { PricingTiersManager } from './PricingTiersManager';
 
 interface ProductFormData {
   name: string;
+  slug: string;
   description: string;
   price: number | null;
   commission_rate: number | null;
@@ -46,6 +47,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
   const form = useForm<ProductFormData>({
     defaultValues: {
       name: '',
+      slug: '',
       description: '',
       price: null,
       commission_rate: null,
@@ -138,9 +140,19 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
     }
   };
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   const populateForm = (data: any) => {
     form.reset({
       name: data.name,
+      slug: data.slug || generateSlug(data.name || ''),
       description: data.description || '',
       price: data.price,
       commission_rate: data.commission_rate,
@@ -301,7 +313,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
                   <FormItem>
                     <FormLabel>Product Name</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Enter product name" />
+                      <Input 
+                        {...field} 
+                        placeholder="Enter product name"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          // Auto-generate slug when name changes
+                          if (!currentProduct?.slug) {
+                            form.setValue('slug', generateSlug(e.target.value));
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -310,28 +332,42 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
 
               <FormField
                 control={form.control}
-                name="vendor_id"
+                name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vendor</FormLabel>
+                    <FormLabel>URL Slug</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full p-2 border border-input rounded-md"
-                      >
-                        <option value="">Select vendor</option>
-                        {vendors.map((vendor) => (
-                          <option key={vendor.id} value={vendor.id}>
-                            {vendor.company_name}
-                          </option>
-                        ))}
-                      </select>
+                      <Input {...field} placeholder="product-url-slug" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="vendor_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vendor</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className="w-full p-2 border border-input rounded-md"
+                    >
+                      <option value="">Select vendor</option>
+                      {vendors.map((vendor) => (
+                        <option key={vendor.id} value={vendor.id}>
+                          {vendor.company_name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

@@ -17,6 +17,7 @@ import { PricingTiersManager } from '@/components/admin/PricingTiersManager';
 interface ProductFormData {
   id?: string;
   name: string;
+  slug: string;
   description: string;
   extended_description?: string;
   price: number | null;
@@ -59,9 +60,19 @@ export default function ProductServiceEdit() {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const { toast } = useToast();
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   const form = useForm<ProductFormData>({
     defaultValues: {
       name: '',
+      slug: '',
       description: '',
       extended_description: '',
       price: null,
@@ -145,6 +156,7 @@ export default function ProductServiceEdit() {
     form.reset({
       id: data.id,
       name: data.name || '',
+      slug: data.slug || generateSlug(data.name || ''),
       description: data.description || '',
       extended_description: data.extended_description || '',
       price: data.price,
@@ -203,6 +215,7 @@ export default function ProductServiceEdit() {
       // Filter out empty strings from arrays
       const filteredData = {
         ...data,
+        slug: data.slug || generateSlug(data.name),
         vendor_id: vendorId,
         features: data.features.filter(item => item.trim() !== ''),
         reseller_benefits: data.reseller_benefits.filter(item => item.trim() !== ''),
@@ -461,7 +474,31 @@ export default function ProductServiceEdit() {
                         <FormItem>
                           <FormLabel>Product/Service Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter product or service name" {...field} />
+                            <Input 
+                              placeholder="Enter product or service name" 
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Auto-generate slug when name changes if no product exists yet
+                                if (!product?.slug) {
+                                  form.setValue('slug', generateSlug(e.target.value));
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL Slug</FormLabel>
+                          <FormControl>
+                            <Input placeholder="product-url-slug" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
