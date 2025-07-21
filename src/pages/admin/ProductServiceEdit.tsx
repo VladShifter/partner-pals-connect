@@ -240,10 +240,15 @@ export default function ProductServiceEdit() {
         // Update existing product
         const updateId = product?.id || data.id;
         console.log('Updating product ID:', updateId);
+        console.log('Data being sent to update:', filteredData);
+        
         result = await supabase
           .from('products')
           .update(filteredData)
-          .eq('id', updateId);
+          .eq('id', updateId)
+          .select();
+          
+        console.log('Update result:', result);
       } else {
         // Create new product
         result = await supabase
@@ -256,23 +261,45 @@ export default function ProductServiceEdit() {
       // Update product tags if we have a product
       if (product?.id || data.id) {
         const productId = product?.id || data.id;
+        console.log('Updating tags for product:', productId);
+        console.log('Selected tags:', selectedTags);
         
-        // Remove existing tags
-        await supabase
-          .from('product_tags')
-          .delete()
-          .eq('product_id', productId);
-
-        // Add new tags
-        if (selectedTags.length > 0) {
-          const tagInserts = selectedTags.map(tagId => ({
-            product_id: productId,
-            tag_id: tagId
-          }));
-
-          await supabase
+        try {
+          // Remove existing tags
+          const deleteResult = await supabase
             .from('product_tags')
-            .insert(tagInserts);
+            .delete()
+            .eq('product_id', productId);
+          
+          console.log('Delete tags result:', deleteResult);
+
+          // Add new tags
+          if (selectedTags.length > 0) {
+            const tagInserts = selectedTags.map(tagId => ({
+              product_id: productId,
+              tag_id: tagId
+            }));
+
+            console.log('Inserting tags:', tagInserts);
+            const insertResult = await supabase
+              .from('product_tags')
+              .insert(tagInserts);
+              
+            console.log('Insert tags result:', insertResult);
+            
+            if (insertResult.error) {
+              console.error('Error inserting tags:', insertResult.error);
+              throw new Error(`Failed to update tags: ${insertResult.error.message}`);
+            }
+          }
+        } catch (tagError) {
+          console.error('Error updating tags:', tagError);
+          // Don't throw here - let the product save succeed even if tags fail
+          toast({
+            title: "Warning",
+            description: "Product saved but tags may not have updated correctly",
+            variant: "destructive"
+          });
         }
       }
 
