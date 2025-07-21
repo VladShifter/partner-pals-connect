@@ -455,121 +455,122 @@ const ProductDetail = () => {
 
           </div>
 
-          {/* Fixed Sidebar */}
-          <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
-            {/* Reseller Opportunity Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2" />
-                  Reseller Opportunity
-                </CardTitle>
-                <CardDescription>
-                  Start earning with {product?.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Key Metrics */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Annual Income Potential</span>
-                    <span className="font-bold text-green-600 text-lg">
-                      ${product?.annual_income_potential?.toLocaleString() || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Average Deal Size</span>
-                    <span className="font-medium">${product?.average_deal_size?.toLocaleString() || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Build from scratch</span>
-                    <span className="font-medium text-red-600 line-through decoration-2">
-                      ${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Income Information */}
-                <div className="bg-primary/10 rounded-lg p-4">
-                  <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-primary/80">Minimum result:</span>
-                      <span className="font-medium text-primary">$2,500/mo</span>
+          {/* Sidebar - Fixed to the right */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
+              {/* Reseller Opportunity Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    Reseller Opportunity
+                  </CardTitle>
+                  <CardDescription>
+                    Start earning with {product?.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Key Metrics */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Annual Income Potential</span>
+                      <span className="font-bold text-green-600 text-lg">
+                        ${product?.annual_income_potential?.toLocaleString() || 'N/A'}
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-primary/80">Best Result for now:</span>
-                      <span className="font-medium text-primary">$36,000/mo</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Average Deal Size</span>
+                      <span className="font-medium">${product?.average_deal_size?.toLocaleString() || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Build from scratch</span>
+                      <span className="font-medium text-red-600 line-through decoration-2">
+                        ${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Pricing Tiers Summary */}
-                <PricingTiersSection 
-                  productId={product.id} 
-                  setupFee={product.setup_fee}
-                  sidebarOnly={true}
-                />
-
-                {/* Value Propositions */}
-                <div className="space-y-2 pt-4 border-t">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                      <Check className="w-3 h-3" />
-                      Easy Start
-                    </Badge>
+                  {/* Income Information */}
+                  <div className="bg-primary/10 rounded-lg p-4">
+                    <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-primary/80">Minimum result:</span>
+                        <span className="font-medium text-primary">$2,500/mo</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-primary/80">Best Result for now:</span>
+                        <span className="font-medium text-primary">$36,000/mo</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                      🛡️ Zero Risk
-                    </Badge>
+
+                  {/* Pricing Tiers Summary */}
+                  <PricingTiersSection 
+                    productId={product.id} 
+                    setupFee={product.setup_fee}
+                    sidebarOnly={true}
+                  />
+
+                  {/* Value Propositions */}
+                  <div className="space-y-2 pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        <Check className="w-3 h-3" />
+                        Easy Start
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        🛡️ Zero Risk
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        💰 High Margin
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        🔄 100% Refund
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                      💰 High Margin
-                    </Badge>
+
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => {
+                        const params = new URLSearchParams({
+                          productId: product.id,
+                          productName: product.name
+                        });
+                        navigate(`/onboard/partner?${params.toString()}`);
+                      }}
+                      className="w-full"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Apply
+                    </Button>
+
+                    <Button 
+                      onClick={handleStartChat} 
+                      variant="outline" 
+                      className="w-full bg-primary/5 border-primary/30 hover:bg-primary/10"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Start Chat
+                    </Button>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                      🔄 100% Refund
-                    </Badge>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => {
-                      const params = new URLSearchParams({
-                        productId: product.id,
-                        productName: product.name
-                      });
-                      navigate(`/onboard/partner?${params.toString()}`);
-                    }}
-                    className="w-full"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Apply
-                  </Button>
-
-                  <Button 
-                    onClick={handleStartChat} 
-                    variant="outline" 
-                    className="w-full bg-primary/5 border-primary/30 hover:bg-primary/10"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Start Chat
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Tags by Category */}
-            <TagCategoryDisplay 
-              tags={productTags}
-              title="Product Tags"
-              showEmpty={true}
-            />
-
+              {/* Tags by Category */}
+              <TagCategoryDisplay 
+                tags={productTags}
+                title="Product Tags"
+                showEmpty={true}
+              />
+            </div>
           </div>
         </div>
       </div>
