@@ -524,6 +524,7 @@ export type Database = {
           is_featured: boolean | null
           is_global: boolean | null
           name: string
+          slug: string | null
           sort_order: number | null
           updated_at: string | null
         }
@@ -536,6 +537,7 @@ export type Database = {
           is_featured?: boolean | null
           is_global?: boolean | null
           name: string
+          slug?: string | null
           sort_order?: number | null
           updated_at?: string | null
         }
@@ -548,6 +550,7 @@ export type Database = {
           is_featured?: boolean | null
           is_global?: boolean | null
           name?: string
+          slug?: string | null
           sort_order?: number | null
           updated_at?: string | null
         }
@@ -647,6 +650,10 @@ export type Database = {
         Returns: string
       }
       generate_slug: {
+        Args: { input_text: string }
+        Returns: string
+      }
+      generate_tag_slug: {
         Args: { input_text: string }
         Returns: string
       }
