@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -43,6 +42,7 @@ const VendorDashboard = () => {
   const [showVendorForm, setShowVendorForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingVendor, setEditingVendor] = useState<any>(null);
+  const [expandedApplications, setExpandedApplications] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Development mode - use mock user
@@ -89,7 +89,19 @@ const VendorDashboard = () => {
         // Set empty array if error
         setProducts([]);
       } else {
-        setProducts(productsData || []);
+        // Add mock marketplace product for demo
+        const mockMarketplaceProduct = {
+          id: 'marketplace-1',
+          name: 'CloudCRM Pro',
+          description: 'Advanced CRM solution for growing businesses',
+          price: 299,
+          commission_rate: 25,
+          status: 'approved',
+          created_at: '2024-01-01T00:00:00Z',
+          vendor_id: mockVendor.id,
+          slug: 'cloudcrm-pro'
+        };
+        setProducts([mockMarketplaceProduct, ...(productsData || [])]);
       }
       
     } catch (error: any) {
@@ -105,8 +117,23 @@ const VendorDashboard = () => {
   };
 
   const handleEditProduct = (product: any) => {
+    // Navigate to product edit page if it's a marketplace product
+    if (product.id === 'marketplace-1') {
+      window.location.href = `/admin/products/${product.slug}/edit`;
+      return;
+    }
     setEditingProduct(product);
     setShowProductForm(true);
+  };
+
+  const toggleApplicationExpansion = (appId: string) => {
+    const newExpanded = new Set(expandedApplications);
+    if (newExpanded.has(appId)) {
+      newExpanded.delete(appId);
+    } else {
+      newExpanded.add(appId);
+    }
+    setExpandedApplications(newExpanded);
   };
 
   const handleEditVendor = () => {
@@ -139,7 +166,25 @@ const VendorDashboard = () => {
       marketing_channels: ["LinkedIn", "Cold Email", "Referrals"],
       partnership_goals: ["Revenue Growth", "Market Expansion"],
       created_at: "2024-01-15T10:00:00Z",
-      product_name: "CloudCRM Pro"
+      product_name: "CloudCRM Pro",
+      linkedin_url: "https://linkedin.com/in/michael-rodriguez-sales",
+      // Full application data
+      phone: "+1-555-0123",
+      website_url: "https://growthpartners.com",
+      company_description: "We specialize in helping SaaS companies scale through strategic partnerships and proven sales methodologies.",
+      why_interested: "Your CRM solution aligns perfectly with our client base of growing B2B companies. We see significant potential for cross-selling opportunities.",
+      previous_partnerships: "Successfully partnered with Salesforce, HubSpot, and Pipedrive, generating over $2M in partner revenue in the last 24 months.",
+      revenue_goals: 500000,
+      country: "United States",
+      industry: "Sales & Marketing Technology",
+      business_model: "Consultancy with commission-based partnerships",
+      audience_size: "~5,000 qualified prospects in our database",
+      active_marketing_channels: "LinkedIn outreach (500+ connections/month), Email campaigns (10k+ subscribers), Referral network of 50+ consultants",
+      individual_type: "Sales Director",
+      entity_type: "company",
+      partner_roles: ["Reseller", "Lead Generator"],
+      social_profiles: "LinkedIn: @michael-rodriguez-sales, Twitter: @MikeGrowthPro",
+      communication_preference: "chat"
     },
     {
       id: "app-2", 
@@ -155,7 +200,25 @@ const VendorDashboard = () => {
       marketing_channels: ["Content Marketing", "Events", "Partnerships"],
       partnership_goals: ["White Label", "Geographic Expansion"],
       created_at: "2024-01-20T14:30:00Z",
-      product_name: "CloudCRM Pro"
+      product_name: "CloudCRM Pro",
+      linkedin_url: "https://linkedin.com/in/sarah-chen-asia",
+      // Full application data
+      phone: "+65-9123-4567",
+      website_url: "https://asiaexpansion.co",
+      company_description: "Leading technology consultancy focused on helping Western SaaS companies establish and scale operations across Southeast Asian markets.",
+      why_interested: "We want to offer white-label CRM solutions to our enterprise clients who need localized, region-specific implementations.",
+      previous_partnerships: "White-label partnerships with 3 major SaaS providers, helping them enter Singapore, Malaysia, and Thailand markets.",
+      revenue_goals: 1200000,
+      country: "Singapore",
+      industry: "Enterprise Software Consulting",
+      business_model: "White-label implementation and ongoing support services",
+      audience_size: "Direct access to 200+ enterprise decision makers",
+      active_marketing_channels: "Industry conferences, executive networking events, content marketing in Mandarin and English",
+      individual_type: "Managing Director",
+      entity_type: "company",
+      partner_roles: ["White Label Partner", "Implementation Specialist"],
+      social_profiles: "LinkedIn: @sarah-chen-asia, WeChat: SarahChenBiz",
+      communication_preference: "email"
     },
     {
       id: "app-3",
@@ -171,7 +234,84 @@ const VendorDashboard = () => {
       marketing_channels: ["Social Media", "Webinars", "Trade Shows"],
       partnership_goals: ["Revenue Growth", "Product Portfolio Expansion"],
       created_at: "2024-01-25T09:15:00Z",
-      product_name: "AI-Powered Training Platform"
+      product_name: "AI-Powered Training Platform",
+      linkedin_url: "https://linkedin.com/in/david-thompson-tech",
+      // Full application data
+      phone: "+44-7700-900123",
+      website_url: "https://techresellers.net",
+      company_description: "Boutique technology reseller focused on AI and automation solutions for European startups and scale-ups.",
+      why_interested: "The AI training platform fills a crucial gap in our portfolio. Our clients are actively seeking AI-powered learning solutions.",
+      previous_partnerships: "Reseller agreements with 5 AI/ML companies, average deal size €15k, 85% client satisfaction rate.",
+      revenue_goals: 300000,
+      country: "United Kingdom",
+      industry: "AI & Machine Learning Solutions",
+      business_model: "Direct sales with implementation and training services",
+      audience_size: "~1,200 qualified prospects across UK, Germany, and Netherlands",
+      active_marketing_channels: "Tech meetups, LinkedIn thought leadership, partner webinars, startup accelerator relationships",
+      individual_type: "Founder & Sales Director",
+      entity_type: "company",
+      partner_roles: ["Reseller", "Solution Integrator"],
+      social_profiles: "LinkedIn: @david-thompson-tech, Twitter: @DTechSales",
+      communication_preference: "chat"
+    }
+  ];
+
+  // Mock data for white label resellers
+  const whiteLabelResellers = [
+    {
+      id: "wl-1",
+      name: "Sarah Chen",
+      company: "Asia Expansion Co",
+      email: "sarah@asiaexpansion.co",
+      phone: "+65-9123-4567",
+      stage: "whitelabeling",
+      demos_conducted: 12,
+      leads_generated: 45,
+      joined_date: "2024-01-20"
+    },
+    {
+      id: "wl-2", 
+      name: "Marcus Weber",
+      company: "EuroTech Solutions",
+      email: "marcus@eurotech.de",
+      phone: "+49-30-12345678",
+      stage: "contract",
+      demos_conducted: 0,
+      leads_generated: 8,
+      joined_date: "2024-02-01"
+    },
+    {
+      id: "wl-3",
+      name: "Jennifer Lopez",
+      company: "LatAm Digital",
+      email: "jennifer@latamdigital.com",
+      phone: "+52-55-1234-5678",
+      stage: "negotiations",
+      demos_conducted: 0,
+      leads_generated: 3,
+      joined_date: "2024-02-10"
+    },
+    {
+      id: "wl-4",
+      name: "Akira Tanaka", 
+      company: "Japan Software Partners",
+      email: "akira@jsoftware.jp",
+      phone: "+81-3-1234-5678",
+      stage: "first_demos",
+      demos_conducted: 3,
+      leads_generated: 15,
+      joined_date: "2024-01-25"
+    },
+    {
+      id: "wl-5",
+      name: "Robert Kim",
+      company: "Seoul Tech Hub",
+      email: "robert@seoultechhub.kr", 
+      phone: "+82-2-1234-5678",
+      stage: "sales",
+      demos_conducted: 28,
+      leads_generated: 87,
+      joined_date: "2023-11-15"
     }
   ];
 
@@ -332,7 +472,7 @@ const VendorDashboard = () => {
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="partners">Partners</TabsTrigger>
+            <TabsTrigger value="white-label">White Label Resellers</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
             <TabsTrigger value="chats">Chats</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -409,6 +549,15 @@ const VendorDashboard = () => {
                         </CardDescription>
                       </div>
                       <div className="flex items-center space-x-2">
+                        <a 
+                          href={app.linkedin_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          LinkedIn
+                        </a>
                         <Badge 
                           variant={app.status === 'approved' ? 'default' : app.status === 'pending' ? 'secondary' : 'outline'}
                           className={
@@ -460,100 +609,188 @@ const VendorDashboard = () => {
                         ))}
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <span className="text-xs text-gray-500">
-                        Applied {new Date(app.created_at).toLocaleDateString()}
-                      </span>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <MessageSquare className="w-4 h-4 mr-1" />
-                          Start Chat
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Connected Partners Tab */}
-          <TabsContent value="partners" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Connected Partners</h2>
-              <Badge variant="outline">{connectedPartners.length} active partners</Badge>
-            </div>
-
-            <div className="grid gap-4">
-              {connectedPartners.map((partner) => (
-                <Card key={partner.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{partner.name}</CardTitle>
-                        <CardDescription className="flex items-center space-x-2 mt-1">
-                          <span>{partner.company}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {partner.type}
-                          </Badge>
-                        </CardDescription>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        {partner.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{partner.registered_clients}</div>
-                        <div className="text-xs text-blue-700">Registered Clients</div>
-                      </div>
-                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{partner.closed_deals}</div>
-                        <div className="text-xs text-green-700">Closed Deals</div>
-                      </div>
-                      <div className="text-center p-3 bg-amber-50 rounded-lg">
-                        <div className="text-2xl font-bold text-amber-600">${partner.total_revenue.toLocaleString()}</div>
-                        <div className="text-xs text-amber-700">Total Revenue</div>
-                      </div>
-                      <div className="text-center p-3 bg-purple-50 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600">
-                          {partner.closed_deals > 0 ? Math.round((partner.total_revenue / partner.closed_deals)) : 0}
-                        </div>
-                        <div className="text-xs text-purple-700">Avg Deal Size</div>
-                      </div>
-                    </div>
                     
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="text-sm text-gray-600">
-                        <p>Joined {new Date(partner.joined_date).toLocaleDateString()}</p>
-                        <p>Last activity: {partner.last_activity}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <MessageSquare className="w-4 h-4 mr-1" />
-                          Chat
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <BarChart3 className="w-4 h-4 mr-1" />
-                          Analytics
-                        </Button>
-                      </div>
+                    <div className="flex space-x-2 mt-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => toggleApplicationExpansion(app.id)}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        {expandedApplications.has(app.id) ? 'Hide Details' : 'View Details'}
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        Start Chat
+                      </Button>
                     </div>
+
+                    {/* Expanded Application Details */}
+                    {expandedApplications.has(app.id) && (
+                      <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
+                        <h4 className="font-semibold text-gray-900 mb-4">Full Application Details</h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Contact Information</p>
+                              <div className="mt-1 text-sm text-gray-600">
+                                <p>Email: {app.email}</p>
+                                <p>Phone: {app.phone}</p>
+                                <p>Website: <a href={app.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{app.website_url}</a></p>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Company Details</p>
+                              <div className="mt-1 text-sm text-gray-600">
+                                <p>Industry: {app.industry}</p>
+                                <p>Country: {app.country}</p>
+                                <p>Business Model: {app.business_model}</p>
+                                <p>Entity Type: {app.entity_type}</p>
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Partner Profile</p>
+                              <div className="mt-1 text-sm text-gray-600">
+                                <p>Role: {app.individual_type}</p>
+                                <p>Communication: {app.communication_preference}</p>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <span>Roles:</span>
+                                  {app.partner_roles.map((role, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">{role}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Business Metrics</p>
+                              <div className="mt-1 text-sm text-gray-600">
+                                <p>Revenue Goal: ${app.revenue_goals?.toLocaleString() || 'Not specified'}</p>
+                                <p>Audience Size: {app.audience_size}</p>
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Company Description</p>
+                              <p className="mt-1 text-sm text-gray-600">{app.company_description}</p>
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Why Interested</p>
+                              <p className="mt-1 text-sm text-gray-600">{app.why_interested}</p>
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Previous Partnerships</p>
+                              <p className="mt-1 text-sm text-gray-600">{app.previous_partnerships}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Marketing Channels</p>
+                            <p className="mt-1 text-sm text-gray-600">{app.active_marketing_channels}</p>
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Social Profiles</p>
+                            <p className="mt-1 text-sm text-gray-600">{app.social_profiles}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
             </div>
           </TabsContent>
 
-          {/* Referral Links Tab */}
+          {/* White Label Resellers Tab */}
+          <TabsContent value="white-label" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">White Label Resellers</h2>
+              <Badge variant="outline">{whiteLabelResellers.length} resellers</Badge>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reseller
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contacts
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Stage
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Demos
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Leads
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {whiteLabelResellers.map((reseller) => (
+                      <tr key={reseller.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{reseller.name}</div>
+                            <div className="text-sm text-gray-500">{reseller.company}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{reseller.email}</div>
+                          <div className="text-sm text-gray-500">{reseller.phone}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge 
+                            variant="outline"
+                            className={
+                              reseller.stage === 'sales' ? 'bg-green-100 text-green-800 border-green-200' :
+                              reseller.stage === 'whitelabeling' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                              reseller.stage === 'first_demos' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                              reseller.stage === 'contract' ? 'bg-purple-100 text-purple-800 border-purple-200' :
+                              'bg-gray-100 text-gray-800 border-gray-200'
+                            }
+                          >
+                            {reseller.stage.replace('_', ' ')}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {reseller.demos_conducted}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {reseller.leads_generated}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <Button variant="ghost" size="sm">
+                            <MessageSquare className="w-4 h-4 mr-1" />
+                            Chat
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Referrals Tab */}
           <TabsContent value="referrals" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-900">Referral Links</h2>
@@ -875,28 +1112,54 @@ const VendorDashboard = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Forms */}
-        <ProductForm
-          isOpen={showProductForm}
-          onClose={() => {
-            setShowProductForm(false);
-            setEditingProduct(null);
-          }}
-          onSuccess={handleFormSuccess}
-          product={editingProduct}
-          vendorId={vendor?.id}
-        />
+        {/* Product Form Modal */}
+        {showProductForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">
+                    {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  </h2>
+                  <Button variant="ghost" onClick={() => setShowProductForm(false)}>
+                    <XCircle className="w-5 h-5" />
+                  </Button>
+                </div>
+                <ProductForm 
+                  product={editingProduct}
+                  vendorId={vendor?.id}
+                  onSuccess={() => {
+                    setShowProductForm(false);
+                    handleFormSuccess();
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
-        <VendorForm
-          isOpen={showVendorForm}
-          onClose={() => {
-            setShowVendorForm(false);
-            setEditingVendor(null);
-          }}
-          onSuccess={handleFormSuccess}
-          vendor={editingVendor}
-          userId={currentUser.id}
-        />
+        {/* Vendor Form Modal */}
+        {showVendorForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Edit Vendor Profile</h2>
+                  <Button variant="ghost" onClick={() => setShowVendorForm(false)}>
+                    <XCircle className="w-5 h-5" />
+                  </Button>
+                </div>
+                <VendorForm 
+                  vendor={editingVendor}
+                  onSuccess={() => {
+                    setShowVendorForm(false);
+                    handleFormSuccess();
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
