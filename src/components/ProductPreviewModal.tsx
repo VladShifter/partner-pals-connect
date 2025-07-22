@@ -15,6 +15,7 @@ import {
   Award
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import QuickSignupModal from "./QuickSignupModal";
 
 interface Tag {
   id: string;
@@ -50,6 +51,7 @@ interface ProductPreviewModalProps {
 
 const ProductPreviewModal = ({ product, isOpen, onClose }: ProductPreviewModalProps) => {
   const { user } = useAuth();
+  const [isQuickSignupOpen, setIsQuickSignupOpen] = useState(false);
 
   if (!product) {
     return null;
@@ -271,11 +273,12 @@ const ProductPreviewModal = ({ product, isOpen, onClose }: ProductPreviewModalPr
               </>
             ) : (
               <>
-                <Button asChild className="flex-1">
-                  <Link to="/signup" onClick={onClose}>
-                    <Star className="w-4 h-4 mr-2" />
-                    Sign Up to Learn More
-                  </Link>
+                <Button 
+                  className="flex-1"
+                  onClick={() => setIsQuickSignupOpen(true)}
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Sign Up to Learn More
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to="/login" onClick={onClose}>
@@ -294,6 +297,11 @@ const ProductPreviewModal = ({ product, isOpen, onClose }: ProductPreviewModalPr
           )}
         </div>
       </DialogContent>
+      
+      <QuickSignupModal 
+        isOpen={isQuickSignupOpen} 
+        onClose={() => setIsQuickSignupOpen(false)} 
+      />
     </Dialog>
   );
 };
