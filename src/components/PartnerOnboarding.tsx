@@ -170,10 +170,11 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     product_id: productId,
   });
 
-  // Load user profile when modal opens
+  // Load user profile and existing application when modal opens
   useEffect(() => {
     if (isOpen) {
       loadUserProfile();
+      loadExistingApplication();
     }
   }, [isOpen]);
 
@@ -216,6 +217,52 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
+    }
+  };
+
+  const loadExistingApplication = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user has any completed applications
+      const { data: completedApp, error } = await supabase
+        .from('partner_applications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (completedApp && !error) {
+        // User has completed application - just submit new one with same data
+        const newApplicationData = {
+          ...completedApp,
+          id: undefined, // Remove ID to create new record
+          product_id: productId,
+          status: 'submitted',
+          created_at: undefined,
+          updated_at: undefined
+        };
+
+        const { data: newApp, error: insertError } = await supabase
+          .from('partner_applications')
+          .insert(newApplicationData)
+          .select()
+          .single();
+
+        if (!insertError) {
+          toast({
+            title: "✅ Application Submitted!",
+            description: "Your application has been submitted using your saved information. You'll hear back soon!",
+          });
+          onClose();
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading existing application:', error);
     }
   };
 
@@ -359,9 +406,20 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                 <User className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold mb-2">Welcome!</h3>
-              <p className="text-muted-foreground">
-                Let's start your partnership journey with {productName}
-              </p>
+              {productName ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-blue-800 font-medium">
+                    🎯 You're applying for partnership with: <span className="font-bold">{productName}</span>
+                  </p>
+                  <p className="text-blue-600 text-sm mt-1">
+                    Complete this onboarding to submit your application
+                  </p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  Let's start your partnership journey
+                </p>
+              )}
             </div>
             
             <div className="space-y-4">
@@ -582,33 +640,17 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone" className="text-base font-medium">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={applicationData.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                    className="mt-2 h-12"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="country" className="text-base font-medium">
-                    Country
-                  </Label>
-                  <Input
-                    id="country"
-                    value={applicationData.country}
-                    onChange={(e) => updateField("country", e.target.value)}
-                    placeholder="United States"
-                    className="mt-2 h-12"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="country" className="text-base font-medium">
+                  Country
+                </Label>
+                <Input
+                  id="country"
+                  value={applicationData.country}
+                  onChange={(e) => updateField("country", e.target.value)}
+                  placeholder="United States"
+                  className="mt-2 h-12"
+                />
               </div>
             </div>
           </div>
@@ -770,13 +812,13 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
 
                 <div>
                   <Label htmlFor="why_interested" className="text-base font-medium">
-                    Why are you interested in partnering with {productName}?
+                    Расскажите коротко про свой опыт
                   </Label>
                   <Textarea
                     id="why_interested"
                     value={applicationData.why_interested}
                     onChange={(e) => updateField("why_interested", e.target.value)}
-                    placeholder="What specifically interests you about this product and how do you see it fitting into your business?"
+                    placeholder="Расскажите о своем опыте в продажах, маркетинге или работе с похожими продуктами..."
                     rows={4}
                     className="mt-2"
                   />
@@ -936,13 +978,13 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
 
               <div>
                 <Label htmlFor="why_interested" className="text-base font-medium">
-                  Why are you interested in partnering with {productName}?
+                  Расскажите коротко про свой опыт
                 </Label>
                 <Textarea
                   id="why_interested"
                   value={applicationData.why_interested}
                   onChange={(e) => updateField("why_interested", e.target.value)}
-                  placeholder="What specifically interests you about this product and how do you see it fitting into your business?"
+                  placeholder="Расскажите о своем опыте в продажах, маркетинге или работе с похожими продуктами..."
                   rows={4}
                   className="mt-2"
                 />

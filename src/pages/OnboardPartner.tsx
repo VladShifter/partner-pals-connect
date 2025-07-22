@@ -334,18 +334,6 @@ const OnboardPartner = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    value={applicationData.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                    required
-                  />
-                </div>
-
                 <div className="flex justify-between pt-4">
                   <Button type="button" variant="outline" onClick={() => navigate("/")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -419,10 +407,10 @@ const OnboardPartner = () => {
 
                 {/* Additional Info Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="why_interested">Why are you interested in this partnership?</Label>
+                  <Label htmlFor="why_interested">Расскажите коротко про свой опыт</Label>
                   <Textarea
                     id="why_interested"
-                    placeholder="Tell us what attracts you to this opportunity..."
+                    placeholder="Расскажите о своем опыте в продажах, маркетинге или работе с похожими продуктами..."
                     value={applicationData.why_interested}
                     onChange={(e) => updateField("why_interested", e.target.value)}
                     rows={4}
