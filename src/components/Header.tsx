@@ -9,12 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Users, Building, Shield, User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { Search, Users, Building, Shield, User, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+
+  console.log('Header: Current user:', user?.email || 'No user', 'Loading:', loading);
 
   // Helper function to get user role from metadata or database
   const getUserRole = () => {
@@ -40,8 +42,8 @@ const Header = () => {
     switch (currentUser.role) {
       case "vendor": return "/vendor/dashboard";
       case "partner": return "/partner/dashboard";
-      case "admin": return "/admin";
-      default: return "/marketplace";
+      case "admin": return "/admin/overview";
+      default: return "/partner/dashboard"; // Default to partner dashboard
     }
   };
 
@@ -72,6 +74,12 @@ const Header = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    console.log('Header: Signing out user');
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,7 +106,7 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {currentUser ? (
+            {!loading && currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -145,7 +153,7 @@ const Header = () => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={signOut}
+                    onClick={handleSignOut}
                     className="text-red-600 focus:text-red-600"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
@@ -153,7 +161,7 @@ const Header = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
+            ) : !loading ? (
               <>
                 <Button variant="ghost" onClick={() => navigate("/login")}>
                   Login
@@ -162,6 +170,8 @@ const Header = () => {
                   Sign Up
                 </Button>
               </>
+            ) : (
+              <div className="w-10 h-10 animate-pulse bg-gray-200 rounded-full"></div>
             )}
           </div>
         </div>

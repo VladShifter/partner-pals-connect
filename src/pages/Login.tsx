@@ -22,6 +22,8 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
+    console.log('Login attempt for email:', email);
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -29,39 +31,64 @@ const Login = () => {
       });
 
       if (error) {
+        console.error('Login error:', error);
         throw error;
       }
 
+      console.log('Login successful, user data:', data.user);
+
       // Get user profile to determine role and redirect
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('user_id', data.user.id)
         .single();
+
+      console.log('User profile:', profile);
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+      }
 
       toast({
         title: "Logged in successfully!",
         description: "Welcome back to Rezollo.",
       });
 
-      // Navigate based on user role
-      switch (profile?.role) {
+      // Navigate based on user role with corrected paths
+      const userRole = profile?.role || 'partner'; // Default to partner if no role found
+      console.log('User role determined:', userRole);
+      
+      switch (userRole) {
         case 'admin':
+          console.log('Redirecting to admin overview');
           navigate("/admin/overview");
           break;
         case 'vendor':
-          navigate("/dashboard/vendor");
+          console.log('Redirecting to vendor dashboard');
+          navigate("/vendor/dashboard");
           break;
         case 'partner':
-          navigate("/dashboard/partner");
-          break;
         default:
-          navigate("/marketplace");
+          console.log('Redirecting to partner dashboard');
+          navigate("/partner/dashboard");
       }
     } catch (error: any) {
+      console.error('Authentication error details:', error);
+      
+      let errorMessage = error.message;
+      
+      // Provide more user-friendly error messages
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = "Неверный email или пароль. Проверьте данные и попробуйте снова.";
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = "Пожалуйста, подтвердите ваш email перед входом.";
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = "Слишком много попыток входа. Попробуйте позже.";
+      }
+      
       toast({
-        title: "Authentication Error",
-        description: error.message,
+        title: "Ошибка входа",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
