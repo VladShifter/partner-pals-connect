@@ -301,7 +301,7 @@ const PartnerDashboard = () => {
                     <p className="text-sm text-gray-500 mt-2 mb-4">
                       Complete your partnership profile to unlock more opportunities
                     </p>
-                    <Button onClick={() => window.location.href = '/partner/onboard'}>
+                    <Button onClick={() => window.location.href = '/onboard/partner'}>
                       Fill Profile
                     </Button>
                   </div>
