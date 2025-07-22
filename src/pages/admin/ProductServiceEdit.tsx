@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -146,6 +145,7 @@ const ProductServiceEdit: React.FC = () => {
       ...data,
       slug: data.slug || generateSlug(data.name || ''),
       extended_description: data.extended_description || '',
+      image_url: data.image_url || null,
       features: data.features && data.features.length > 0 ? data.features : [''],
       reseller_benefits: data.reseller_benefits && data.reseller_benefits.length > 0 ? data.reseller_benefits : [''],
       ideal_resellers: data.ideal_resellers && data.ideal_resellers.length > 0 ? data.ideal_resellers : [''],
