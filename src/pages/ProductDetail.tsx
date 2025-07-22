@@ -514,7 +514,7 @@ const ProductDetail = () => {
                         <div>
                           <Label htmlFor="partnership-type">Preferred Partnership Type</Label>
                           <select className="w-full p-2 border rounded-md">
-                            <option value="">Select partnership type</option>
+                            <option value="none">Select partnership type</option>
                             <option value="reseller">Reseller</option>
                             <option value="affiliate">Affiliate</option>
                             <option value="white_label">White Label</option>

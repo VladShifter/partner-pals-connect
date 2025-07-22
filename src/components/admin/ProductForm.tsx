@@ -319,7 +319,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
                         {...field}
                         className="w-full p-2 border border-input rounded-md"
                       >
-                        <option value="">Select vendor</option>
+                        <option value="none">Select vendor</option>
                         {vendors.map((vendor) => (
                           <option key={vendor.id} value={vendor.id}>
                             {vendor.company_name}
