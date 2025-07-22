@@ -25,6 +25,7 @@ import AdminVendors from "./pages/admin/AdminVendors";
 import AdminPartners from "./pages/admin/AdminPartners";
 import AdminApplications from "./pages/admin/AdminApplications";
 import AdminTags from "./pages/admin/AdminTags";
+import AdminProducts from "./pages/admin/AdminProducts";
 import ProductServiceEdit from "./pages/admin/ProductServiceEdit";
 import PartnerSuccess from "./pages/PartnerSuccess";
 
@@ -61,6 +62,9 @@ const App = () => (
             <Route path="overview" element={<AdminOverview />} />
             <Route path="vendors" element={<AdminVendors />} />
             <Route path="vendors/:vendorId/edit" element={<ProductServiceEdit />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="products/new" element={<ProductServiceEdit />} />
+            <Route path="products/:productId/edit" element={<ProductServiceEdit />} />
             <Route path="partners" element={<AdminPartners />} />
             <Route path="applications" element={<AdminApplications />} />
             <Route path="tags" element={<AdminTags />} />

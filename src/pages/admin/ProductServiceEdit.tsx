@@ -36,7 +36,7 @@ interface ProductFormData {
 }
 
 const ProductServiceEdit: React.FC = () => {
-  const { productId } = useParams();
+  const { productId, vendorId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -82,6 +82,13 @@ const ProductServiceEdit: React.FC = () => {
     }
   }, [productId]);
 
+  // Reset unsaved changes when productId changes
+  useEffect(() => {
+    if (productId) {
+      setHasUnsavedChanges(false);
+    }
+  }, [productId]);
+
   const fetchVendors = async () => {
     try {
       const { data, error } = await supabase
@@ -115,8 +122,8 @@ const ProductServiceEdit: React.FC = () => {
 
       if (error) throw error;
 
-      // Only populate form if we have data and haven't made unsaved changes
-      if (data && !hasUnsavedChanges) {
+      // Populate form with fetched data
+      if (data) {
         populateForm(data);
       }
     } catch (error) {

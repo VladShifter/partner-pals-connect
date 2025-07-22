@@ -8,6 +8,7 @@ import {
   UserCheck, 
   FileText, 
   Tags, 
+  Package,
   LogOut,
   Settings
 } from 'lucide-react';
@@ -15,6 +16,7 @@ import {
 const navigation = [
   { name: 'Overview', href: '/admin/overview', icon: LayoutDashboard },
   { name: 'Vendors', href: '/admin/vendors', icon: Users },
+  { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Partners', href: '/admin/partners', icon: UserCheck },
   { name: 'Applications', href: '/admin/applications', icon: FileText },
   { name: 'Tags', href: '/admin/tags', icon: Tags },
