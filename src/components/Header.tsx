@@ -10,21 +10,34 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Users, Building, Shield, User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface HeaderProps {
-  user?: {
-    id: string;
-    role: string;
-    name: string;
-  } | null;
-}
-
-const Header = ({ user }: HeaderProps) => {
+const Header = () => {
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // Helper function to get user role from metadata or database
+  const getUserRole = () => {
+    if (!user) return null;
+    // For now, we'll default to 'partner' but this should be fetched from database
+    return user?.user_metadata?.role || 'partner';
+  };
+
+  // Helper function to get user name
+  const getUserName = () => {
+    if (!user) return '';
+    return user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
+  };
+
+  const currentUser = user ? {
+    id: user.id,
+    role: getUserRole(),
+    name: getUserName()
+  } : null;
+
   const getDashboardPath = () => {
-    if (!user) return "/login";
-    switch (user.role) {
+    if (!currentUser) return "/login";
+    switch (currentUser.role) {
       case "vendor": return "/vendor/dashboard";
       case "partner": return "/partner/dashboard";
       case "admin": return "/admin";
@@ -85,13 +98,13 @@ const Header = ({ user }: HeaderProps) => {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {user ? (
+            {currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-9 w-9">
-                      <AvatarFallback className={`${getRoleColor(user.role)} bg-gray-100 font-medium`}>
-                        {getUserInitials(user.name)}
+                      <AvatarFallback className={`${getRoleColor(currentUser.role)} bg-gray-100 font-medium`}>
+                        {getUserInitials(currentUser.name)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -100,18 +113,18 @@ const Header = ({ user }: HeaderProps) => {
                   <div className="flex flex-col space-y-1 p-2">
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className={`${getRoleColor(user.role)} bg-gray-100 text-xs font-medium`}>
-                          {getUserInitials(user.name)}
+                        <AvatarFallback className={`${getRoleColor(currentUser.role)} bg-gray-100 text-xs font-medium`}>
+                          {getUserInitials(currentUser.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-sm font-medium leading-none">{currentUser.name}</p>
                         <div className="flex items-center space-x-1">
-                          <span className={getRoleColor(user.role)}>
-                            {getRoleIcon(user.role)}
+                          <span className={getRoleColor(currentUser.role)}>
+                            {getRoleIcon(currentUser.role)}
                           </span>
                           <p className="text-xs leading-none text-muted-foreground capitalize">
-                            {user.role}
+                            {currentUser.role}
                           </p>
                         </div>
                       </div>
@@ -132,10 +145,7 @@ const Header = ({ user }: HeaderProps) => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => {
-                      // TODO: Implement logout
-                      console.log("Logout clicked");
-                    }}
+                    onClick={signOut}
                     className="text-red-600 focus:text-red-600"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

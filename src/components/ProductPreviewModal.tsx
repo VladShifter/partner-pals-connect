@@ -14,7 +14,7 @@ import {
   Target,
   Award
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Tag {
   id: string;
@@ -49,25 +49,9 @@ interface ProductPreviewModalProps {
 }
 
 const ProductPreviewModal = ({ product, isOpen, onClose }: ProductPreviewModalProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    } catch (error) {
-      console.error('Error checking auth:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!product || loading) {
+  if (!product) {
     return null;
   }
 
@@ -271,7 +255,7 @@ const ProductPreviewModal = ({ product, isOpen, onClose }: ProductPreviewModalPr
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-            {isAuthenticated ? (
+            {user ? (
               <>
                 <Button asChild className="flex-1">
                   <Link to={`/product/${product.slug}`} onClick={onClose}>
@@ -303,7 +287,7 @@ const ProductPreviewModal = ({ product, isOpen, onClose }: ProductPreviewModalPr
           </div>
 
           {/* Small disclaimer for non-authenticated users */}
-          {!isAuthenticated && (
+          {!user && (
             <div className="text-xs text-gray-500 text-center pt-2 border-t">
               Create a free account to access full product details, pricing information, and start partnership conversations
             </div>

@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ExternalLink, Play, Star } from "lucide-react";
 import ProductPreviewModal from "./ProductPreviewModal";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Tag {
   id: string;
@@ -38,28 +38,12 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const availablePartnerTypes = Object.keys(product.partner_terms);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    } catch (error) {
-      console.error('Error checking auth:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (isAuthenticated) {
+    if (user) {
       // If authenticated, go directly to product page
       window.location.href = `/product/${product.slug}`;
     } else {
@@ -194,7 +178,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                   }}
                 >
                   <ExternalLink className="w-4 h-4 mr-1" />
-                  {isAuthenticated ? 'View Details' : 'Preview'}
+                  {user ? 'View Details' : 'Preview'}
                 </Button>
                 <Button variant="outline" size="sm">
                   <Play className="w-4 h-4 mr-1" />
@@ -288,7 +272,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                   handleCardClick(e);
                 }}
               >
-                {isAuthenticated ? 'View Details' : 'Learn More'}
+                {user ? 'View Details' : 'Learn More'}
               </Button>
               <Button variant="outline" size="sm">
                 <Play className="w-4 h-4" />
