@@ -8,7 +8,6 @@ import {
   UserCheck, 
   FileText, 
   Tags, 
-  Package,
   LogOut,
   Settings
 } from 'lucide-react';
@@ -16,7 +15,6 @@ import {
 const navigation = [
   { name: 'Overview', href: '/admin/overview', icon: LayoutDashboard },
   { name: 'Vendors', href: '/admin/vendors', icon: Users },
-  { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Partners', href: '/admin/partners', icon: UserCheck },
   { name: 'Applications', href: '/admin/applications', icon: FileText },
   { name: 'Tags', href: '/admin/tags', icon: Tags },
@@ -56,13 +54,7 @@ export function AdminLayout() {
       {/* Sidebar */}
       <div className="w-64 bg-card border-r border-border flex flex-col">
         <div className="p-6">
-          <div className="mb-2">
-            <img 
-              src="/lovable-uploads/3aa30cb7-3c3c-46bb-802c-e23b01b0aceb.png" 
-              alt="Rezollo"
-              className="h-8 w-auto"
-            />
-          </div>
+          <h1 className="text-xl font-bold text-foreground">Rezollo Admin</h1>
           <p className="text-sm text-muted-foreground">Staff Console</p>
         </div>
         

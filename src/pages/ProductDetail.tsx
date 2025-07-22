@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -9,14 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText, PlayCircle } from "lucide-react";
+import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 import { ROICalculator } from "@/components/ROICalculator";
-// Removed PartnerOnboarding import - now using navigation to onboarding page
-import { TagDisplay } from "@/components/TagDisplay";
-import { TagCategoryDisplay } from "@/components/TagCategoryDisplay";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -24,9 +22,7 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const [product, setProduct] = useState<any>(null);
   const [vendor, setVendor] = useState<any>(null);
-  const [productTags, setProductTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
   const [calculatorValues, setCalculatorValues] = useState({
     price: 1000,
     deals: 5,
@@ -41,13 +37,18 @@ const ProductDetail = () => {
     try {
       setLoading(true);
       
-      console.log('Looking for product with slug:', slug);
+      // Convert slug to product name (cloudcrm-pro -> CloudCRM Pro)
+      const productName = slug?.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ').replace('Crm', 'CRM') || '';
       
-      // Fetch product by slug
+      console.log('Looking for product:', productName);
+      
+      // Fetch product by name
       const { data: productData, error: productError } = await supabase
         .from('products')
         .select('*')
-        .eq('slug', slug)
+        .ilike('name', `%${productName}%`)
         .eq('status', 'approved')
         .single();
 
@@ -59,26 +60,6 @@ const ProductDetail = () => {
       }
 
       setProduct(productData);
-
-      // Fetch product tags
-      const { data: tagsData, error: tagsError } = await supabase
-        .from('product_tags')
-        .select(`
-          tags (
-            id,
-            name,
-            color_hex,
-            category,
-            is_featured,
-            sort_order
-          )
-        `)
-        .eq('product_id', productData.id);
-
-      if (!tagsError && tagsData) {
-        const tags = tagsData.map(item => item.tags).filter(Boolean);
-        setProductTags(tags);
-      }
 
       // Fetch vendor info
       if (productData.vendor_id) {
@@ -163,34 +144,6 @@ const ProductDetail = () => {
     }
   };
 
-  // Get featured tags and range tags for header display
-  const featuredTags = productTags.filter(tag => tag.is_featured);
-  const getRangeTags = () => {
-    const rangeTags = [];
-    if (product.commission_rate) {
-      const range = product.commission_rate <= 10 ? '0–10%' : 
-                   product.commission_rate <= 30 ? '11–30%' : 
-                   product.commission_rate <= 50 ? '31–50%' : '50%+';
-      rangeTags.push({ name: `${range} Commission`, color_hex: '#06D6A0' });
-    }
-    if (product.annual_income_potential) {
-      const monthlyIncome = product.annual_income_potential / 12;
-      const range = monthlyIncome < 1000 ? '<$1K/mo' :
-                   monthlyIncome <= 4999 ? '$1K–5K/mo' :
-                   monthlyIncome <= 19999 ? '$5K–20K/mo' :
-                   monthlyIncome <= 99999 ? '$20K–100K/mo' : '$100K+/mo';
-      rangeTags.push({ name: range, color_hex: '#FFD60A' });
-    }
-    if (product.average_deal_size) {
-      const range = product.average_deal_size < 100 ? '<$100' :
-                   product.average_deal_size <= 999 ? '$100–999' :
-                   product.average_deal_size <= 4999 ? '$1K–5K' :
-                   product.average_deal_size <= 19999 ? '$5K–20K' : '$20K+ deals';
-      rangeTags.push({ name: range, color_hex: '#FB8500' });
-    }
-    return rangeTags;
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -220,31 +173,22 @@ const ProductDetail = () => {
                   <Badge variant="outline">{vendor?.niche || 'General'}</Badge>
                 </div>
                 <CardTitle className="text-3xl">{product.name}</CardTitle>
-
                 <CardDescription className="text-lg">
                   {product.description || 'No description available'}
                 </CardDescription>
-
-                {/* Detailed Description */}
-                <div className="pt-2">
-                  <p className="text-foreground leading-relaxed">
-                    Start a thriving e-learning business under your own brand with zero hassle. Our fully white-label AI training platform lets you offer corporate learning solutions without managing content creation, assessment development, or support—we handle it all. Focus on growing your profits and brand!
-                  </p>
-                </div>
               </CardHeader>
               <CardContent>
                 {/* Extended Description */}
                 {product.extended_description && (
-                  <div className="mb-6 p-4 bg-muted/30 rounded-lg prose prose-sm max-w-none">
-                    <div 
-                      className="text-sm leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: product.extended_description }}
-                    />
+                  <div className="mb-6 p-4 bg-muted/30 rounded-lg">
+                    <p className="text-sm leading-relaxed">
+                      {product.extended_description}
+                    </p>
                   </div>
                 )}
 
-                {/* Tags Overview with Subtle Shadow */}
-                <div className="space-y-4 mb-6 p-4 rounded-lg shadow-sm bg-background border border-border/40">
+                {/* Clean Overview */}
+                <div className="space-y-4 mb-6">
                   {/* Partner Types - Simple text with dots */}
                   <div>
                     <span className="text-sm text-muted-foreground">Perfect for: </span>
@@ -269,47 +213,8 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* Demo Video */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <PlayCircle className="w-5 h-5 mr-2" />
-                    Product Demo
-                  </h3>
-                  <div className="aspect-video rounded-lg overflow-hidden">
-                    {vendor?.demo_video_file_url ? (
-                      <video
-                        src={vendor.demo_video_file_url}
-                        controls
-                        className="w-full h-full object-cover"
-                      >
-                        Your browser does not support the video tag.
-                      </video>
-                    ) : (
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                        title="Product Demo"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        className="w-full h-full"
-                      />
-                    )}
-                  </div>
-                </div>
-
                 <div className="flex gap-3">
-                  <Button 
-                    onClick={() => {
-                      const params = new URLSearchParams({
-                        productId: product.id,
-                        productName: product.name
-                      });
-                      navigate(`/onboard/partner?${params.toString()}`);
-                    }} 
-                    size="lg"
-                  >
+                  <Button onClick={handleStartChat} size="lg">
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Apply Now
                   </Button>
@@ -319,6 +224,40 @@ const ProductDetail = () => {
                       Visit Website
                     </a>
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Demo Video */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Demo</CardTitle>
+                <CardDescription>
+                  See how the platform works in action
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  {vendor?.demo_video_file_url ? (
+                    <video
+                      src={vendor.demo_video_file_url}
+                      controls
+                      className="w-full h-full object-cover"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                      title="Product Demo"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -455,126 +394,154 @@ const ProductDetail = () => {
 
           </div>
 
-          {/* Sidebar - Fixed to the right */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
-              {/* Reseller Opportunity Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <DollarSign className="w-5 h-5 mr-2" />
-                    Reseller Opportunity
-                  </CardTitle>
-                  <CardDescription>
-                    Start earning with {product?.name}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Key Metrics */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Annual Income Potential</span>
-                      <span className="font-bold text-green-600 text-lg">
-                        ${product?.annual_income_potential?.toLocaleString() || 'N/A'}
-                      </span>
+          {/* Fixed Sidebar */}
+          <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
+            {/* Reseller Opportunity Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  Reseller Opportunity
+                </CardTitle>
+                <CardDescription>
+                  Start earning with {product?.name}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Key Metrics */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Annual Income Potential</span>
+                    <span className="font-bold text-green-600 text-lg">
+                      ${product?.annual_income_potential?.toLocaleString() || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Average Deal Size</span>
+                    <span className="font-medium">${product?.average_deal_size?.toLocaleString() || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Build from scratch</span>
+                    <span className="font-medium text-red-600 line-through decoration-2">
+                      ${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Income Information */}
+                <div className="bg-primary/10 rounded-lg p-4">
+                  <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-primary/80">Minimum result:</span>
+                      <span className="font-medium text-primary">$2,500/mo</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Average Deal Size</span>
-                      <span className="font-medium">${product?.average_deal_size?.toLocaleString() || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Build from scratch</span>
-                      <span className="font-medium text-red-600 line-through decoration-2">
-                        ${product?.build_from_scratch_cost?.toLocaleString() || 'N/A'}
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-primary/80">Best Result for now:</span>
+                      <span className="font-medium text-primary">$36,000/mo</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Income Information */}
-                  <div className="bg-primary/10 rounded-lg p-4">
-                    <h5 className="font-medium text-primary mb-2">Earning Potential</h5>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-primary/80">Minimum result:</span>
-                        <span className="font-medium text-primary">$2,500/mo</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-primary/80">Best Result for now:</span>
-                        <span className="font-medium text-primary">$36,000/mo</span>
-                      </div>
-                    </div>
+                {/* Pricing Tiers Summary */}
+                <PricingTiersSection 
+                  productId={product.id} 
+                  setupFee={product.setup_fee}
+                  sidebarOnly={true}
+                />
+
+                {/* Value Propositions */}
+                <div className="space-y-2 pt-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Easy Start
+                    </Badge>
                   </div>
-
-                  {/* Pricing Tiers Summary */}
-                  <PricingTiersSection 
-                    productId={product.id} 
-                    setupFee={product.setup_fee}
-                    sidebarOnly={true}
-                  />
-
-                  {/* Value Propositions */}
-                  <div className="space-y-2 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                        <Check className="w-3 h-3" />
-                        Easy Start
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                        🛡️ Zero Risk
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                        💰 High Margin
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                        🔄 100% Refund
-                      </Badge>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      🛡️ Zero Risk
+                    </Badge>
                   </div>
-
-                  <div className="space-y-3">
-                    <Button 
-                      onClick={() => {
-                        const params = new URLSearchParams({
-                          productId: product.id,
-                          productName: product.name
-                        });
-                        navigate(`/onboard/partner?${params.toString()}`);
-                      }}
-                      className="w-full"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Apply
-                    </Button>
-
-                    <Button 
-                      onClick={handleStartChat} 
-                      variant="outline" 
-                      className="w-full bg-primary/5 border-primary/30 hover:bg-primary/10"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Start Chat
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      💰 High Margin
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      🔄 100% Refund
+                    </Badge>
+                  </div>
+                </div>
 
-              {/* Tags by Category */}
-              <TagCategoryDisplay 
-                tags={productTags}
-                title="Product Tags"
-                showEmpty={true}
-              />
-            </div>
+                <div className="space-y-3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Apply
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Apply for Partnership</DialogTitle>
+                        <DialogDescription>
+                          Fill out this form to apply for a partnership with {vendor?.company_name || 'this vendor'}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input id="name" placeholder="Enter your full name" />
+                        </div>
+                        <div>
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" type="email" placeholder="Enter your email" />
+                        </div>
+                        <div>
+                          <Label htmlFor="company">Company</Label>
+                          <Input id="company" placeholder="Enter your company name" />
+                        </div>
+                        <div>
+                          <Label htmlFor="experience">Experience</Label>
+                          <Textarea 
+                            id="experience" 
+                            placeholder="Tell us about your experience in sales/partnerships..."
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="partnership-type">Preferred Partnership Type</Label>
+                          <select className="w-full p-2 border rounded-md">
+                            <option value="">Select partnership type</option>
+                            <option value="reseller">Reseller</option>
+                            <option value="affiliate">Affiliate</option>
+                            <option value="white_label">White Label</option>
+                          </select>
+                        </div>
+                        <Button type="submit" className="w-full">
+                          Submit Application
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Button 
+                    onClick={handleStartChat} 
+                    variant="outline" 
+                    className="w-full bg-primary/5 border-primary/30 hover:bg-primary/10"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Start Chat
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
         </div>
       </div>
-
     </div>
   );
 };

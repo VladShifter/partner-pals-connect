@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductForm } from "@/components/vendor/ProductForm";
 import { VendorForm } from "@/components/vendor/VendorForm";
-import { PartnerApplications } from "@/components/vendor/PartnerApplications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -34,12 +33,8 @@ const VendorDashboard = () => {
   const [editingVendor, setEditingVendor] = useState<any>(null);
   const { toast } = useToast();
 
-  // Development mode - use mock user
-  const DEVELOPMENT_MODE = true;
-  const currentUser = DEVELOPMENT_MODE ? {
-    id: 'vendor-1',
-    email: 'vendor@demo.com'
-  } : {
+  // Mock user - in real app this would come from auth context
+  const currentUser = {
     id: 'temp-user-id',
     email: localStorage.getItem('temp_admin_email') || 'admin@rezollo.com'
   };
@@ -66,20 +61,15 @@ const VendorDashboard = () => {
       
       setVendor(mockVendor);
       
-      // Fetch products using a proper UUID query
+      // Fetch products
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .eq('vendor_id', mockVendor.id)
         .order('created_at', { ascending: false });
 
-      if (productsError) {
-        console.error('Products query error:', productsError);
-        // Set empty array if error
-        setProducts([]);
-      } else {
-        setProducts(productsData || []);
-      }
+      if (productsError) throw productsError;
+      setProducts(productsData || []);
       
     } catch (error: any) {
       console.error('Error fetching vendor data:', error);
@@ -206,7 +196,6 @@ const VendorDashboard = () => {
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="applications">Partner Applications</TabsTrigger>
             <TabsTrigger value="chats">Active Chats</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -258,11 +247,6 @@ const VendorDashboard = () => {
                 </Card>
               ))}
             </div>
-          </TabsContent>
-
-          {/* Partner Applications Tab */}
-          <TabsContent value="applications">
-            <PartnerApplications vendorId={vendor?.id} />
           </TabsContent>
 
           {/* Chats Tab */}

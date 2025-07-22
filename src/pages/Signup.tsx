@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Mail, ArrowLeft, Building, Users, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -36,10 +35,10 @@ const Signup = () => {
       return;
     }
 
-    if (password.length < 8) {
+    if (password.length < 6) {
       toast({
         title: "Error",
-        description: "Password must be at least 8 characters long",
+        description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
       return;
@@ -47,68 +46,23 @@ const Signup = () => {
 
     setIsLoading(true);
     
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name,
-            company,
-            role
-          }
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        // Create/update profile with additional data
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            user_id: data.user.id,
-            email: data.user.email!,
-            role: role === 'vendor' ? 'vendor' : 'partner'
-          });
-
-        if (profileError) {
-          console.warn('Profile creation error:', profileError);
-        }
-
-        toast({
-          title: "Account created!",
-          description: "Please check your email to confirm your account.",
-        });
-
-        // Pass user data to onboarding via URL params
-        const params = new URLSearchParams({
-          email,
-          name,
-          company,
-          fromSignup: 'true'
-        });
-        
-        if (role === "vendor") {
-          navigate(`/onboard/vendor?${params.toString()}`);
-        } else {
-          navigate(`/onboard/partner?${params.toString()}`);
-        }
-      }
-    } catch (error: any) {
+    // TODO: Implement Supabase auth and user creation
+    console.log("Signup attempt:", { email, password, name, company, role });
+    
+    // Simulate API call
+    setTimeout(() => {
       toast({
-        title: "Registration Error",
-        description: error.message,
-        variant: "destructive"
+        title: "Account created!",
+        description: "Your account has been created successfully.",
       });
-    } finally {
       setIsLoading(false);
-    }
+      // TODO: Redirect to appropriate onboarding
+      if (role === "vendor") {
+        navigate("/onboard/vendor");
+      } else {
+        navigate("/onboard/partner");
+      }
+    }, 1000);
   };
 
   return (
