@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApplicationProfile from '@/components/partner/ApplicationProfile';
+import { ProfileOnboarding } from '@/components/partner/ProfileOnboarding';
 import { 
   User,
   Building,
@@ -15,7 +16,6 @@ import {
   Users,
   CheckCircle,
   FileText,
-  Settings
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 const PartnerDashboard = () => {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showProfileOnboarding, setShowProfileOnboarding] = useState(false);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -33,7 +34,7 @@ const PartnerDashboard = () => {
   }, []);
 
   // Fetch partner applications
-  const { data: applications, isLoading: applicationsLoading } = useQuery({
+  const { data: applications, isLoading: applicationsLoading, refetch } = useQuery({
     queryKey: ['partner-applications', currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) return [];
@@ -42,11 +43,11 @@ const PartnerDashboard = () => {
         .from('partner_applications')
         .select(`
           *,
-          products!inner(
+          products(
             id,
             name,
             vendor_id,
-            vendors!inner(
+            vendors(
               company_name
             )
           )
@@ -66,7 +67,7 @@ const PartnerDashboard = () => {
 
   // Get the most recent completed application for profile display
   const profileApplication = applications?.find(app => 
-    app.status === 'submitted' || app.status === 'approved' || app.status === 'under_review'
+    app.status === 'submitted' || app.status === 'approved' || app.status === 'under_review' || app.status === 'profile_completed'
   );
 
   // Mock performance data (in real app, this would come from actual sales data)
@@ -81,21 +82,27 @@ const PartnerDashboard = () => {
     approved: 'bg-green-100 text-green-800',
     under_review: 'bg-yellow-100 text-yellow-800',
     submitted: 'bg-blue-100 text-blue-800',
-    rejected: 'bg-red-100 text-red-800'
+    rejected: 'bg-red-100 text-red-800',
+    profile_completed: 'bg-purple-100 text-purple-800'
   };
 
   const statusLabels = {
     approved: 'Approved',
     under_review: 'Under Review',
     submitted: 'Submitted',
-    rejected: 'Rejected'
+    rejected: 'Rejected',
+    profile_completed: 'Profile Completed'
   };
 
   const handleEditProfile = () => {
-    // Navigate to edit profile (could be implemented later)
+    setShowProfileOnboarding(true);
+  };
+
+  const handleProfileComplete = () => {
+    refetch(); // Refresh applications to show the new profile
     toast({
-      title: "Edit Profile",
-      description: "Profile editing feature will be available soon.",
+      title: "Profile Updated",
+      description: "Your partner profile has been updated successfully.",
     });
   };
 
@@ -246,11 +253,11 @@ const PartnerDashboard = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900">
-                              {app.products?.name || 'Product Application'}
+                              {app.products?.name || app.status === 'profile_completed' ? 'General Profile' : 'Product Application'}
                             </h3>
                             <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
                               <Building className="w-4 h-4" />
-                              <span>{app.products?.vendors?.company_name || 'Vendor'}</span>
+                              <span>{app.products?.vendors?.company_name || 'Profile Information'}</span>
                             </div>
                             <div className="flex items-center space-x-4 text-sm text-gray-600 mt-2">
                               <span>Submitted: {new Date(app.created_at).toLocaleDateString()}</span>
@@ -301,7 +308,7 @@ const PartnerDashboard = () => {
                     <p className="text-sm text-gray-500 mt-2 mb-4">
                       Complete your partnership profile to unlock more opportunities
                     </p>
-                    <Button onClick={() => window.location.href = '/onboard/partner'}>
+                    <Button onClick={() => setShowProfileOnboarding(true)}>
                       Fill Profile
                     </Button>
                   </div>
@@ -311,6 +318,13 @@ const PartnerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Profile Onboarding Modal */}
+      <ProfileOnboarding
+        isOpen={showProfileOnboarding}
+        onClose={() => setShowProfileOnboarding(false)}
+        onComplete={handleProfileComplete}
+      />
     </div>
   );
 };
