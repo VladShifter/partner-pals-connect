@@ -1113,53 +1113,27 @@ const VendorDashboard = () => {
         </Tabs>
 
         {/* Product Form Modal */}
-        {showProductForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">
-                    {editingProduct ? 'Edit Product' : 'Add New Product'}
-                  </h2>
-                  <Button variant="ghost" onClick={() => setShowProductForm(false)}>
-                    <XCircle className="w-5 h-5" />
-                  </Button>
-                </div>
-                <ProductForm 
-                  product={editingProduct}
-                  vendorId={vendor?.id}
-                  onSuccess={() => {
-                    setShowProductForm(false);
-                    handleFormSuccess();
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        <ProductForm 
+          isOpen={showProductForm}
+          onClose={() => setShowProductForm(false)}
+          product={editingProduct}
+          vendorId={vendor?.id}
+          onSuccess={() => {
+            setShowProductForm(false);
+            handleFormSuccess();
+          }}
+        />
 
         {/* Vendor Form Modal */}
-        {showVendorForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">Edit Vendor Profile</h2>
-                  <Button variant="ghost" onClick={() => setShowVendorForm(false)}>
-                    <XCircle className="w-5 h-5" />
-                  </Button>
-                </div>
-                <VendorForm 
-                  vendor={editingVendor}
-                  onSuccess={() => {
-                    setShowVendorForm(false);
-                    handleFormSuccess();
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        <VendorForm 
+          isOpen={showVendorForm}
+          onClose={() => setShowVendorForm(false)}
+          vendor={editingVendor}
+          onSuccess={() => {
+            setShowVendorForm(false);
+            handleFormSuccess();
+          }}
+        />
       </div>
     </div>
   );
