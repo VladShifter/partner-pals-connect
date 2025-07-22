@@ -61,7 +61,7 @@ interface ApplicationData {
   user_id?: string;
 }
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5; // Reduced steps for quick signup users
 
 const partnerRoleOptions = [
   {
@@ -142,6 +142,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [applicationData, setApplicationData] = useState<ApplicationData>({
     email: "",
     name: "",
@@ -168,6 +169,55 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     completed_steps: [1],
     product_id: productId,
   });
+
+  // Load user profile when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadUserProfile();
+    }
+  }, [isOpen]);
+
+  const loadUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+
+      setUserProfile(profile);
+      
+      // If user had quick signup, pre-fill basic info and start from step 2
+      if (profile.quick_signup) {
+        const userName = user.user_metadata?.name || '';
+        setApplicationData(prev => ({
+          ...prev,
+          email: user.email || '',
+          name: userName,
+          user_id: user.id,
+          current_step: 2,
+          completed_steps: [1, 2]
+        }));
+        setCurrentStep(2);
+      } else {
+        // Regular signup flow
+        setApplicationData(prev => ({
+          ...prev,
+          user_id: user.id
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   // Auto-save function
   const saveProgress = async (data: Partial<ApplicationData>, step: number) => {
@@ -223,7 +273,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     // Auto-save current step
     await saveProgress(applicationData, currentStep);
     
-    if (currentStep < TOTAL_STEPS) {
+    if (currentStep < (userProfile?.quick_signup ? TOTAL_STEPS : 6)) {
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -683,6 +733,60 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
         );
 
       case 5:
+        // Skip step 6 for quick signup users, show final step
+        if (userProfile?.quick_signup) {
+          return (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Final Details</h3>
+                <p className="text-muted-foreground">
+                  Tell us about your goals and finalize your application.
+                </p>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="revenue_goals" className="flex items-center gap-2 text-base font-medium">
+                    <DollarSign className="w-4 h-4" />
+                    Monthly Revenue Goal from This Product
+                  </Label>
+                  <Select value={applicationData.revenue_goals?.toString() || ""} onValueChange={(value) => updateField("revenue_goals", parseFloat(value))}>
+                    <SelectTrigger className="mt-2 h-12">
+                      <SelectValue placeholder="Select your monthly revenue goal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="500">$500 - $1,000</SelectItem>
+                      <SelectItem value="1000">$1,000 - $2,500</SelectItem>
+                      <SelectItem value="2500">$2,500 - $5,000</SelectItem>
+                      <SelectItem value="5000">$5,000 - $10,000</SelectItem>
+                      <SelectItem value="10000">$10,000 - $25,000</SelectItem>
+                      <SelectItem value="25000">$25,000+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="why_interested" className="text-base font-medium">
+                    Why are you interested in partnering with {productName}?
+                  </Label>
+                  <Textarea
+                    id="why_interested"
+                    value={applicationData.why_interested}
+                    onChange={(e) => updateField("why_interested", e.target.value)}
+                    placeholder="What specifically interests you about this product and how do you see it fitting into your business?"
+                    rows={4}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        // Regular step 5 for full signup users
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -866,7 +970,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
     }
   };
 
-  const progress = (currentStep / TOTAL_STEPS) * 100;
+  const progress = (currentStep / (userProfile?.quick_signup ? TOTAL_STEPS : 6)) * 100;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -877,7 +981,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
             Partner Application - {productName}
           </DialogTitle>
           <DialogDescription className="text-base">
-            Step {currentStep} of {TOTAL_STEPS}
+            Step {currentStep} of {userProfile?.quick_signup ? TOTAL_STEPS : 6}
           </DialogDescription>
         </DialogHeader>
 
@@ -906,7 +1010,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
             Previous
           </Button>
 
-          {currentStep === TOTAL_STEPS ? (
+          {currentStep === (userProfile?.quick_signup ? TOTAL_STEPS : 6) ? (
             <Button onClick={submitApplication} disabled={isLoading} className="h-12 px-8">
               {isLoading ? "Submitting..." : "Submit Application"}
               <Check className="w-4 h-4 ml-2" />

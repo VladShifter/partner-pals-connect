@@ -223,7 +223,10 @@ export default function ProductServiceEdit() {
         // Create new product
         result = await supabase
           .from('products')
-          .insert([filteredData]);
+          .insert([{
+            ...filteredData,
+            slug: filteredData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+          }]);
       }
 
       if (result.error) throw result.error;

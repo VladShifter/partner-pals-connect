@@ -191,7 +191,8 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
           .from('products')
           .insert([{
             ...filteredData,
-            status: 'pending'
+            status: 'pending',
+            slug: filteredData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
           }])
           .select()
           .single();
