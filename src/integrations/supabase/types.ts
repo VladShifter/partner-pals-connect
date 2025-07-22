@@ -44,6 +44,205 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partner_applications: {
+        Row: {
+          active_marketing_channels: string | null
+          audience_size: string | null
+          business_model: string | null
+          communication_preference: string | null
+          company_description: string | null
+          company_name: string | null
+          completed_steps: number[] | null
+          country: string | null
+          created_at: string | null
+          current_step: number | null
+          email: string
+          entity_type: string | null
+          experience_years: number | null
+          id: string
+          individual_type: string | null
+          industry: string | null
+          marketing_channels: string[] | null
+          monthly_revenue: number | null
+          multiple_products: boolean | null
+          name: string | null
+          partner_roles: string[] | null
+          partnership_goals: string[] | null
+          phone: string | null
+          previous_partnerships: string | null
+          product_id: string | null
+          revenue_goals: number | null
+          scheduled_call_date: string | null
+          social_profiles: string | null
+          status: string | null
+          status_updated_at: string | null
+          target_market: string | null
+          team_size: number | null
+          updated_at: string | null
+          user_id: string | null
+          vendor_notes: string | null
+          website_url: string | null
+          why_interested: string | null
+        }
+        Insert: {
+          active_marketing_channels?: string | null
+          audience_size?: string | null
+          business_model?: string | null
+          communication_preference?: string | null
+          company_description?: string | null
+          company_name?: string | null
+          completed_steps?: number[] | null
+          country?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          email: string
+          entity_type?: string | null
+          experience_years?: number | null
+          id?: string
+          individual_type?: string | null
+          industry?: string | null
+          marketing_channels?: string[] | null
+          monthly_revenue?: number | null
+          multiple_products?: boolean | null
+          name?: string | null
+          partner_roles?: string[] | null
+          partnership_goals?: string[] | null
+          phone?: string | null
+          previous_partnerships?: string | null
+          product_id?: string | null
+          revenue_goals?: number | null
+          scheduled_call_date?: string | null
+          social_profiles?: string | null
+          status?: string | null
+          status_updated_at?: string | null
+          target_market?: string | null
+          team_size?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vendor_notes?: string | null
+          website_url?: string | null
+          why_interested?: string | null
+        }
+        Update: {
+          active_marketing_channels?: string | null
+          audience_size?: string | null
+          business_model?: string | null
+          communication_preference?: string | null
+          company_description?: string | null
+          company_name?: string | null
+          completed_steps?: number[] | null
+          country?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          email?: string
+          entity_type?: string | null
+          experience_years?: number | null
+          id?: string
+          individual_type?: string | null
+          industry?: string | null
+          marketing_channels?: string[] | null
+          monthly_revenue?: number | null
+          multiple_products?: boolean | null
+          name?: string | null
+          partner_roles?: string[] | null
+          partnership_goals?: string[] | null
+          phone?: string | null
+          previous_partnerships?: string | null
+          product_id?: string | null
+          revenue_goals?: number | null
+          scheduled_call_date?: string | null
+          social_profiles?: string | null
+          status?: string | null
+          status_updated_at?: string | null
+          target_market?: string | null
+          team_size?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vendor_notes?: string | null
+          website_url?: string | null
+          why_interested?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_applications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_chats: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          id: string
+          partner_id: string
+          thread_id: string
+          updated_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          thread_id: string
+          updated_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          thread_id?: string
+          updated_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_chats_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "partner_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           company_name: string
@@ -212,6 +411,7 @@ export type Database = {
           getting_customers: string[] | null
           id: string
           ideal_resellers: string[] | null
+          image_url: string | null
           launch_steps: string[] | null
           name: string
           price: number | null
@@ -220,6 +420,7 @@ export type Database = {
           roi_default_deals_per_month: number | null
           roi_monthly_fee: number | null
           setup_fee: number | null
+          slug: string
           status: string | null
           updated_at: string | null
           vendor_id: string | null
@@ -236,6 +437,7 @@ export type Database = {
           getting_customers?: string[] | null
           id?: string
           ideal_resellers?: string[] | null
+          image_url?: string | null
           launch_steps?: string[] | null
           name: string
           price?: number | null
@@ -244,6 +446,7 @@ export type Database = {
           roi_default_deals_per_month?: number | null
           roi_monthly_fee?: number | null
           setup_fee?: number | null
+          slug: string
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -260,6 +463,7 @@ export type Database = {
           getting_customers?: string[] | null
           id?: string
           ideal_resellers?: string[] | null
+          image_url?: string | null
           launch_steps?: string[] | null
           name?: string
           price?: number | null
@@ -268,6 +472,7 @@ export type Database = {
           roi_default_deals_per_month?: number | null
           roi_monthly_fee?: number | null
           setup_fee?: number | null
+          slug?: string
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -431,6 +636,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          target_user_id: string
+          notification_type: string
+          notification_title: string
+          notification_message: string
+          notification_data?: Json
+        }
+        Returns: string
+      }
+      generate_slug: {
+        Args: { input_text: string }
+        Returns: string
+      }
       get_commission_range_tag: {
         Args: { commission_rate: number }
         Returns: string
