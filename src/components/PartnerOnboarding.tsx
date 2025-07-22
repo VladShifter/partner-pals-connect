@@ -230,7 +230,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
         .from('partner_applications')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'completed')
+        .eq('status', 'submitted')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -255,7 +255,7 @@ export const PartnerOnboarding: React.FC<PartnerOnboardingProps> = ({
         if (!insertError) {
           toast({
             title: "✅ Application Submitted!",
-            description: "Your application has been submitted using your saved information. You'll hear back soon!",
+            description: "Thank you for your application! Your submission has been sent to the vendor for review. You'll receive updates in your dashboard.",
           });
           onClose();
           return;
