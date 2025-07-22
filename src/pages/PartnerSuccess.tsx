@@ -163,12 +163,19 @@ const PartnerSuccess = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button 
+                  onClick={() => navigate('/marketplace')}
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Go to Marketplace
+                </Button>
+                <Button 
                   variant="outline" 
                   onClick={() => window.open('mailto:partners@company.com', '_blank')}
                   className="flex items-center gap-2"
                 >
                   <Mail className="h-4 w-4" />
-                  partners@company.com
+                  Contact Support
                 </Button>
                 <Button 
                   variant="outline"
@@ -181,6 +188,9 @@ const PartnerSuccess = () => {
               </div>
               
               <div className="pt-4 border-t border-border/50">
+                <p className="text-sm text-muted-foreground mb-3">
+                  🎉 You can now browse all products without limitations!
+                </p>
                 <Button 
                   variant="ghost" 
                   onClick={() => navigate('/partner-dashboard')}
