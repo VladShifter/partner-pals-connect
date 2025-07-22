@@ -411,7 +411,6 @@ export type Database = {
           getting_customers: string[] | null
           id: string
           ideal_resellers: string[] | null
-          image_url: string | null
           launch_steps: string[] | null
           name: string
           price: number | null
@@ -420,7 +419,6 @@ export type Database = {
           roi_default_deals_per_month: number | null
           roi_monthly_fee: number | null
           setup_fee: number | null
-          slug: string
           status: string | null
           updated_at: string | null
           vendor_id: string | null
@@ -437,7 +435,6 @@ export type Database = {
           getting_customers?: string[] | null
           id?: string
           ideal_resellers?: string[] | null
-          image_url?: string | null
           launch_steps?: string[] | null
           name: string
           price?: number | null
@@ -446,7 +443,6 @@ export type Database = {
           roi_default_deals_per_month?: number | null
           roi_monthly_fee?: number | null
           setup_fee?: number | null
-          slug: string
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -463,7 +459,6 @@ export type Database = {
           getting_customers?: string[] | null
           id?: string
           ideal_resellers?: string[] | null
-          image_url?: string | null
           launch_steps?: string[] | null
           name?: string
           price?: number | null
@@ -472,7 +467,6 @@ export type Database = {
           roi_default_deals_per_month?: number | null
           roi_monthly_fee?: number | null
           setup_fee?: number | null
-          slug?: string
           status?: string | null
           updated_at?: string | null
           vendor_id?: string | null
@@ -524,7 +518,6 @@ export type Database = {
           is_featured: boolean | null
           is_global: boolean | null
           name: string
-          slug: string | null
           sort_order: number | null
           updated_at: string | null
         }
@@ -537,7 +530,6 @@ export type Database = {
           is_featured?: boolean | null
           is_global?: boolean | null
           name: string
-          slug?: string | null
           sort_order?: number | null
           updated_at?: string | null
         }
@@ -550,7 +542,6 @@ export type Database = {
           is_featured?: boolean | null
           is_global?: boolean | null
           name?: string
-          slug?: string | null
           sort_order?: number | null
           updated_at?: string | null
         }
@@ -647,14 +638,6 @@ export type Database = {
           notification_message: string
           notification_data?: Json
         }
-        Returns: string
-      }
-      generate_slug: {
-        Args: { input_text: string }
-        Returns: string
-      }
-      generate_tag_slug: {
-        Args: { input_text: string }
         Returns: string
       }
       get_commission_range_tag: {

@@ -1,176 +1,134 @@
--- Add category and slug columns to tags table
+
+-- Расширение таблицы tags для поддержки категорий и типов фильтров
 ALTER TABLE public.tags 
-ADD COLUMN IF NOT EXISTS category TEXT,
-ADD COLUMN IF NOT EXISTS slug TEXT;
+ADD COLUMN category TEXT,
+ADD COLUMN filter_type TEXT DEFAULT 'checkbox',
+ADD COLUMN sort_order INTEGER DEFAULT 0,
+ADD COLUMN is_featured BOOLEAN DEFAULT false;
 
--- Create unique composite index on (category, slug)
-CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_category_slug ON public.tags (category, slug);
+-- Обновление существующих тегов - перенос в категорию Industry
+UPDATE public.tags 
+SET category = 'Industry', is_featured = true, sort_order = 1
+WHERE name IN ('AI SaaS', 'E-commerce', 'Marketing', 'Analytics', 'Productivity');
 
--- Create function to generate slug from name
-CREATE OR REPLACE FUNCTION public.generate_tag_slug(input_name TEXT)
-RETURNS TEXT
-LANGUAGE plpgsql
-IMMUTABLE
-AS $$
-BEGIN
-  RETURN lower(
-    regexp_replace(
-      regexp_replace(trim(input_name), '[^a-zA-Z0-9\s-]', '', 'g'),
-      '\s+', '-', 'g'
-    )
-  );
-END;
-$$;
+-- Создание всех предустановленных тегов по категориям
 
--- Create trigger to automatically populate slug on insert
-CREATE OR REPLACE FUNCTION public.populate_tag_slug()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  IF NEW.slug IS NULL THEN
-    NEW.slug = generate_tag_slug(NEW.name);
-  END IF;
-  RETURN NEW;
-END;
-$$;
+-- Industry (продолжение - добавляем новые)
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('Retail', '#FF6B35', 'Industry', true, true, 6),
+('HoReCa', '#FF8C42', 'Industry', true, true, 7),
+('Healthcare', '#06D6A0', 'Industry', true, true, 8),
+('Logistics', '#118AB2', 'Industry', true, true, 9),
+('Manufacturing', '#073B4C', 'Industry', true, true, 10),
+('EdTech', '#7209B7', 'Industry', true, true, 11),
+('FinTech', '#F72585', 'Industry', true, true, 12),
+('PropTech', '#4361EE', 'Industry', true, true, 13),
+('Travel', '#4CC9F0', 'Industry', true, true, 14),
+('Legal', '#7209B7', 'Industry', true, true, 15),
+('Energy', '#FFB700', 'Industry', true, true, 16),
+('GovTech', '#06FFA5', 'Industry', true, true, 17);
 
-CREATE TRIGGER trigger_populate_tag_slug
-  BEFORE INSERT ON public.tags
-  FOR EACH ROW
-  EXECUTE FUNCTION populate_tag_slug();
-
--- Insert all predefined tags with explicit slugs
-INSERT INTO public.tags (category, name, slug)
-VALUES 
--- Industry
-('industry', 'AI SaaS', 'ai-saas'),
-('industry', 'E-commerce', 'e-commerce'),
-('industry', 'Marketing', 'marketing'),
-('industry', 'Analytics', 'analytics'),
-('industry', 'Productivity', 'productivity'),
-('industry', 'Retail', 'retail'),
-('industry', 'HoReCa', 'horeca'),
-('industry', 'Healthcare', 'healthcare'),
-('industry', 'Logistics', 'logistics'),
-('industry', 'Manufacturing', 'manufacturing'),
-('industry', 'EdTech', 'edtech'),
-('industry', 'FinTech', 'fintech'),
-('industry', 'PropTech', 'proptech'),
-('industry', 'Travel', 'travel'),
-('industry', 'Legal', 'legal'),
-('industry', 'Energy', 'energy'),
-('industry', 'GovTech', 'govtech'),
-('industry', 'Other', 'other-industry'),
-
--- Use-Case
-('use_case', 'CRM', 'crm'),
-('use_case', 'Marketing Automation', 'marketing-automation'),
-('use_case', 'Predictive Analytics', 'predictive-analytics'),
-('use_case', 'LMS & Training', 'lms-training'),
-('use_case', 'HR Tech', 'hr-tech'),
-('use_case', 'Customer Support', 'customer-support'),
-('use_case', 'Finance Ops', 'finance-ops'),
-('use_case', 'Cybersecurity', 'cybersecurity'),
-('use_case', 'BI & Reporting', 'bi-reporting'),
-('use_case', 'Other', 'other-use-case'),
+-- Use-Case/Department
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('CRM', '#FF006E', 'Use-Case', true, false, 1),
+('Marketing Automation', '#FB5607', 'Use-Case', true, false, 2),
+('Predictive Analytics', '#FFBE0B', 'Use-Case', true, false, 3),
+('LMS & Training', '#8338EC', 'Use-Case', true, false, 4),
+('HR Tech', '#3A86FF', 'Use-Case', true, false, 5),
+('Customer Support', '#06FFA5', 'Use-Case', true, false, 6),
+('Finance Ops', '#FB8500', 'Use-Case', true, false, 7),
+('Cybersecurity', '#DC2F02', 'Use-Case', true, false, 8),
+('BI & Reporting', '#9D4EDD', 'Use-Case', true, false, 9);
 
 -- Product Scale
-('product_scale', 'MicroSaaS', 'microsaas'),
-('product_scale', 'SMB SaaS', 'smb-saas'),
-('product_scale', 'Enterprise', 'enterprise'),
-('product_scale', 'Other', 'other-product-scale'),
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('MicroSaaS', '#90E0EF', 'Product Scale', true, false, 1),
+('SMB SaaS', '#00B4D8', 'Product Scale', true, false, 2),
+('Enterprise', '#0077B6', 'Product Scale', true, false, 3);
 
--- Technology
-('technology', 'AI-Agent', 'ai-agent'),
-('technology', 'AI-Analytics', 'ai-analytics'),
-('technology', 'No-Code', 'no-code'),
-('technology', 'Low-Code', 'low-code'),
-('technology', 'API-First', 'api-first'),
-('technology', 'Blockchain', 'blockchain'),
-('technology', 'IoT', 'iot'),
-('technology', 'AR/VR', 'ar-vr'),
-('technology', 'Other', 'other-technology'),
+-- Technology/Stack
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('AI-Agent', '#FF006E', 'Technology', true, false, 1),
+('AI-Analytics', '#FB5607', 'Technology', true, false, 2),
+('No-Code', '#FFBE0B', 'Technology', true, false, 3),
+('Low-Code', '#8338EC', 'Technology', true, false, 4),
+('API-First', '#3A86FF', 'Technology', true, false, 5),
+('Blockchain', '#06FFA5', 'Technology', true, false, 6),
+('IoT', '#FB8500', 'Technology', true, false, 7),
+('AR/VR', '#DC2F02', 'Technology', true, false, 8);
 
 -- Business Model
-('business_model', 'SaaS Subscription', 'saas-subscription'),
-('business_model', 'One-Time License', 'one-time-license'),
-('business_model', 'Tokens/Credits', 'tokens-credits'),
-('business_model', 'Usage-Based', 'usage-based'),
-('business_model', 'Freemium Upsell', 'freemium-upsell'),
-('business_model', 'Other', 'other-business-model'),
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('SaaS-Subscription', '#06D6A0', 'Business Model', true, true, 1),
+('One-Time License', '#118AB2', 'Business Model', true, true, 2),
+('Tokens/Credits', '#073B4C', 'Business Model', true, true, 3),
+('Usage-Based', '#FFD60A', 'Business Model', true, true, 4),
+('Freemium-Upsell', '#003566', 'Business Model', true, true, 5);
 
 -- Partner Type
-('partner_type', 'Full White Label', 'full-white-label'),
-('partner_type', 'Classic Reseller', 'classic-reseller'),
-('partner_type', 'Affiliate', 'affiliate'),
-('partner_type', 'Agency', 'agency'),
-('partner_type', 'VAR', 'var'),
-('partner_type', 'MSP', 'msp'),
-('partner_type', 'Referral-Only', 'referral-only'),
-('partner_type', 'OEM', 'oem'),
-('partner_type', 'Ambassador', 'ambassador'),
-('partner_type', 'Advisor', 'advisor'),
-('partner_type', 'Other', 'other-partner-type'),
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('Full White Label', '#7209B7', 'Partner Type', true, true, 1),
+('Classic Reseller', '#F72585', 'Partner Type', true, true, 2),
+('Affiliate', '#4361EE', 'Partner Type', true, true, 3),
+('Agency', '#4CC9F0', 'Partner Type', true, true, 4),
+('VAR', '#7209B7', 'Partner Type', true, true, 5),
+('MSP', '#06FFA5', 'Partner Type', true, true, 6),
+('Referral-Only', '#FFB700', 'Partner Type', true, true, 7),
+('OEM', '#FF006E', 'Partner Type', true, true, 8),
+('Ambassador', '#FB5607', 'Partner Type', true, true, 9),
+('Advisor', '#FFBE0B', 'Partner Type', true, true, 10);
 
--- Vendor Support
-('vendor_support', 'Marketing Materials Provided', 'marketing-materials-provided'),
-('vendor_support', 'Vendor Demos Client', 'vendor-demos-client'),
-('vendor_support', 'Lead Nurturing Support', 'lead-nurturing-support'),
-('vendor_support', 'Partner Training Provided', 'partner-training-provided'),
-('vendor_support', 'Dedicated Partner Manager', 'dedicated-partner-manager'),
-('vendor_support', 'Other', 'other-vendor-support'),
+-- Vendor Support & Engagement
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('Marketing Materials Provided', '#06D6A0', 'Vendor Support', true, true, 1),
+('Vendor Demos Client', '#118AB2', 'Vendor Support', true, true, 2),
+('Lead Nurturing Support', '#073B4C', 'Vendor Support', true, true, 3),
+('Partner Training Provided', '#FFD60A', 'Vendor Support', true, true, 4),
+('Dedicated Partner Manager', '#003566', 'Vendor Support', true, true, 5),
+('Full Self-Service', '#7209B7', 'Vendor Support', true, true, 6),
+('Hands-On Support', '#F72585', 'Vendor Support', true, true, 7);
 
--- Setup Fee
-('setup_fee', '$0', '0'),
-('setup_fee', '$1-499', '1-499'),
-('setup_fee', '$500-999', '500-999'),
-('setup_fee', '$1,000+', '1000-plus'),
+-- Quality Indicators
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('100% Refund', '#06D6A0', 'Quality', true, false, 1),
+('Zero-Risk', '#118AB2', 'Quality', true, false, 2),
+('Trial Available', '#073B4C', 'Quality', true, false, 3),
+('New', '#FFD60A', 'Quality', true, false, 4),
+('Trending', '#003566', 'Quality', true, false, 5),
+('Best-Seller', '#7209B7', 'Quality', true, false, 6),
+('Premium', '#F72585', 'Quality', true, false, 7);
 
--- Vendor Support Setup
-('vendor_support_setup', 'White-Label OK', 'white-label-ok'),
-('vendor_support_setup', 'No-Code Launch', 'no-code-launch'),
-('vendor_support_setup', 'Full-Service', 'full-service'),
-('vendor_support_setup', 'Self-Serve', 'self-serve'),
-('vendor_support_setup', 'Dedicated CSM', 'dedicated-csm'),
-('vendor_support_setup', '100% Refund', '100-percent-refund'),
-('vendor_support_setup', 'Zero-Risk', 'zero-risk'),
-('vendor_support_setup', 'Trial Available', 'trial-available'),
+-- Client Segment
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('B2B', '#4361EE', 'Client Segment', true, false, 1),
+('B2C', '#4CC9F0', 'Client Segment', true, false, 2),
+('B2G', '#7209B7', 'Client Segment', true, false, 3);
 
--- Commission %
-('commission_percent', '0-10%', '0-10-percent'),
-('commission_percent', '11-30%', '11-30-percent'),
-('commission_percent', '31-50%', '31-50-percent'),
-('commission_percent', '50%+', '50-plus-percent'),
+-- Geography/Compliance
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('Global (200+)', '#06FFA5', 'Geography', true, false, 1),
+('EU-Only', '#FFB700', 'Geography', true, false, 2),
+('US-Only', '#FF006E', 'Geography', true, false, 3),
+('GDPR-Ready', '#FB5607', 'Geography', true, false, 4),
+('HIPAA-Ready', '#FFBE0B', 'Geography', true, false, 5),
+('ISO 27001', '#8338EC', 'Geography', true, false, 6);
 
--- Average Deal Size
-('average_deal_size', '< $100', 'lt-100'),
-('average_deal_size', '$100-999', '100-999'),
-('average_deal_size', '$1,000-4,999', '1000-4999'),
-('average_deal_size', '$5,000-19,999', '5000-19999'),
-('average_deal_size', '$20,000+', '20000-plus'),
+-- Setup & Support
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('White-Label OK', '#3A86FF', 'Setup', true, false, 1),
+('No-Code Launch', '#06FFA5', 'Setup', true, false, 2),
+('<24h Go-Live', '#FB8500', 'Setup', true, false, 3),
+('Full-Service', '#DC2F02', 'Setup', true, false, 4),
+('Self-Serve', '#9D4EDD', 'Setup', true, false, 5),
+('Dedicated CSM', '#90E0EF', 'Setup', true, false, 6);
 
--- Potential Monthly Income
-('potential_monthly_income', '< $1,000', 'lt-1000'),
-('potential_monthly_income', '$1,000-4,999', '1000-4999'),
-('potential_monthly_income', '$5,000-19,999', '5000-19999'),
-('potential_monthly_income', '$20,000-99,999', '20000-99999'),
-('potential_monthly_income', '$100,000+', '100000-plus'),
+-- Hosting/Deployment
+INSERT INTO public.tags (name, color_hex, category, is_global, is_featured, sort_order) VALUES
+('Pure-SaaS', '#00B4D8', 'Hosting', true, false, 1),
+('Hybrid', '#0077B6', 'Hosting', true, false, 2),
+('On-Prem Option', '#023E8A', 'Hosting', true, false, 3);
 
--- Legal & Security
-('legal_security', 'GDPR Ready', 'gdpr-ready'),
-('legal_security', 'ISO 27001', 'iso-27001'),
-('legal_security', 'SOC 2', 'soc-2'),
-('legal_security', 'HIPAA Compliant', 'hipaa-compliant'),
-('legal_security', 'CCPA Compliant', 'ccpa-compliant'),
-('legal_security', 'End-to-End Encryption', 'e2e-encryption'),
-('legal_security', 'PCI DSS', 'pci-dss'),
-('legal_security', 'Data stored in EU', 'data-in-eu'),
-('legal_security', 'Data stored in US', 'data-in-us')
-
-ON CONFLICT (category, slug) DO NOTHING;
-
--- Create functions for automatic range tags
+-- Создание функций для автоматических тегов-диапазонов
 CREATE OR REPLACE FUNCTION public.get_commission_range_tag(commission_rate NUMERIC)
 RETURNS TEXT
 LANGUAGE SQL
@@ -178,9 +136,9 @@ IMMUTABLE
 AS $$
   SELECT CASE 
     WHEN commission_rate IS NULL THEN NULL
-    WHEN commission_rate <= 10 THEN '0-10%'
-    WHEN commission_rate <= 30 THEN '11-30%'
-    WHEN commission_rate <= 50 THEN '31-50%'
+    WHEN commission_rate <= 10 THEN '0–10%'
+    WHEN commission_rate <= 30 THEN '11–30%'
+    WHEN commission_rate <= 50 THEN '31–50%'
     ELSE '50%+'
   END;
 $$;
@@ -192,10 +150,10 @@ IMMUTABLE
 AS $$
   SELECT CASE 
     WHEN deal_size IS NULL THEN NULL
-    WHEN deal_size < 100 THEN '< $100'
-    WHEN deal_size <= 999 THEN '$100-999'
-    WHEN deal_size <= 4999 THEN '$1,000-4,999'
-    WHEN deal_size <= 19999 THEN '$5,000-19,999'
+    WHEN deal_size < 100 THEN '<$100'
+    WHEN deal_size <= 999 THEN '$100–999'
+    WHEN deal_size <= 4999 THEN '$1,000–4,999'
+    WHEN deal_size <= 19999 THEN '$5,000–19,999'
     ELSE '$20,000+'
   END;
 $$;
@@ -207,10 +165,10 @@ IMMUTABLE
 AS $$
   SELECT CASE 
     WHEN annual_income IS NULL THEN NULL
-    WHEN annual_income/12 < 1000 THEN '< $1,000'
-    WHEN annual_income/12 <= 4999 THEN '$1,000-4,999'
-    WHEN annual_income/12 <= 19999 THEN '$5,000-19,999'
-    WHEN annual_income/12 <= 99999 THEN '$20,000-99,999'
+    WHEN annual_income/12 < 1000 THEN '<$1,000'
+    WHEN annual_income/12 <= 4999 THEN '$1,000–4,999'
+    WHEN annual_income/12 <= 19999 THEN '$5,000–19,999'
+    WHEN annual_income/12 <= 99999 THEN '$20,000–99,999'
     ELSE '$100,000+'
   END;
 $$;
@@ -222,8 +180,8 @@ IMMUTABLE
 AS $$
   SELECT CASE 
     WHEN setup_fee IS NULL OR setup_fee = 0 THEN '$0'
-    WHEN setup_fee <= 499 THEN '$1-499'
-    WHEN setup_fee <= 999 THEN '$500-999'
+    WHEN setup_fee <= 499 THEN '$1–499'
+    WHEN setup_fee <= 999 THEN '$500–999'
     ELSE '$1,000+'
   END;
 $$;

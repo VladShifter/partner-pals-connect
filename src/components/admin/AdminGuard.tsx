@@ -1,71 +1,53 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
 
 interface AdminGuardProps {
   children: React.ReactNode;
 }
 
-export function AdminGuard({ children }: AdminGuardProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+// Development mode - bypass authentication
+const DEVELOPMENT_MODE = true; // Set to false for production
+
+export const AdminGuard: React.FC<AdminGuardProps> = ({ children }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Temporary bypass - check for temp admin email in localStorage
-    const tempEmail = localStorage.getItem('temp_admin_email');
-    if (tempEmail) {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
+    // In development mode, always allow access
+    if (DEVELOPMENT_MODE) {
       setIsAdmin(true);
       setLoading(false);
       return;
     }
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check if user is admin
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          setIsAdmin(profile?.role === 'admin');
-        } else {
-          setIsAdmin(false);
-        }
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (session?.user) {
-        // Check if user is admin
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        setIsAdmin(profile?.role === 'admin');
-      } else {
+      if (!user) {
         setIsAdmin(false);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    });
 
-    return () => subscription.unsubscribe();
-  }, []);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      setIsAdmin(profile?.role === 'admin');
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+      setIsAdmin(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -75,9 +57,9 @@ export function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  if (!isAdmin && !localStorage.getItem('temp_admin_email')) {
+  if (!isAdmin) {
     return <Navigate to="/admin/login" replace />;
   }
 
   return <>{children}</>;
-}
+};

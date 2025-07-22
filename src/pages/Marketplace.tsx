@@ -8,18 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, Grid, List, X } from "lucide-react";
+import { Search, Filter, Grid, List, X, ChevronDown, Settings } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Marketplace = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedTagsByCategory, setSelectedTagsByCategory] = useState<Record<string, string[]>>({});
   const [selectedSubtypes, setSelectedSubtypes] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [products, setProducts] = useState<any[]>([]);
+  const [allTags, setAllTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,7 +32,18 @@ const Marketplace = () => {
     try {
       setLoading(true);
       
-      // Fetch products with vendor information and tags
+      // Fetch all tags first
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('tags')
+        .select('*')
+        .eq('is_global', true)
+        .order('category', { ascending: true })
+        .order('sort_order', { ascending: true });
+
+      if (tagsError) throw tagsError;
+      setAllTags(tagsData || []);
+      
+      // Fetch products with vendor and tags information
       const { data: productsData, error } = await supabase
         .from('products')
         .select(`
@@ -46,9 +59,10 @@ const Marketplace = () => {
             tags (
               id,
               name,
-              slug,
+              color_hex,
               category,
-              color_hex
+              is_featured,
+              sort_order
             )
           )
         `)
@@ -58,27 +72,32 @@ const Marketplace = () => {
       if (error) throw error;
 
       // Transform data to match the expected format
-      const transformedProducts = (productsData || []).map(product => ({
-        id: product.id,
-        title: product.name,
-        vendor: product.vendors?.company_name || 'Unknown Vendor',
-        niche: product.vendors?.niche || 'General',
-        pitch: product.description || product.vendors?.pitch || '',
-        tags: product.product_tags?.map(pt => pt.tags?.name).filter(Boolean) || [product.vendors?.niche || 'General'],
-        slug: product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        image: product.vendors?.banner_image_url || getProductImage(product.vendors?.niche),
-        partner_terms: getDefaultPartnerTerms(),
-        price: product.price,
-        commission_rate: product.commission_rate,
-        tagData: product.product_tags?.map(pt => pt.tags).filter(Boolean) || []
-      }));
+      const transformedProducts = (productsData || []).map(product => {
+        const tags = product.product_tags?.map(pt => pt.tags).filter(Boolean) || [];
+        
+        return {
+          id: product.id,
+          title: product.name,
+          vendor: product.vendors?.company_name || 'Unknown Vendor',
+          niche: product.vendors?.niche || 'General',
+          pitch: product.description || product.vendors?.pitch || '',
+          tags: tags,
+          slug: product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
+          partner_terms: getDefaultPartnerTerms(),
+          image: getProductImage(product.vendors?.niche),
+          commission_rate: product.commission_rate,
+          average_deal_size: product.average_deal_size,
+          annual_income_potential: product.annual_income_potential,
+          setup_fee: product.setup_fee
+        };
+      });
 
       setProducts(transformedProducts);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching products:', error);
       toast({
         title: "Error",
-        description: "Failed to load products",
+        description: "Failed to fetch products",
         variant: "destructive"
       });
     } finally {
@@ -101,53 +120,79 @@ const Marketplace = () => {
     affiliate: { margin_pct: 15, notes: "Marketing materials provided" }
   });
 
-  const allTags = Array.from(new Set(products.flatMap(p => p.tags)));
-  const allTagData = Array.from(
-    new Map(products.flatMap(p => p.tagData).map(tag => [tag.id, tag])).values()
-  );
-  
-  // Group tags by category
-  const tagsByCategory = allTagData.reduce((acc, tag) => {
+  // Group all tags by category
+  const tagsByCategory = allTags.reduce((acc, tag: any) => {
     const category = tag.category || 'Other';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
+    if (!acc[category]) acc[category] = [];
     acc[category].push(tag);
     return acc;
   }, {} as Record<string, any[]>);
+
+  // Basic filter categories
+  const basicCategories = ['Business Model', 'Client Segment', 'Industry', 'Partner Type'];
+  const basicTags = Object.fromEntries(
+    Object.entries(tagsByCategory).filter(([category]) => basicCategories.includes(category))
+  );
   
-  const partnerSubtypes = ["white_label", "reseller", "agent", "affiliate", "referral", "advisor"];
+  const advancedTags = Object.fromEntries(
+    Object.entries(tagsByCategory).filter(([category]) => !basicCategories.includes(category))
+  );
+
+  // Monthly earning ranges
+  const monthlyEarningRanges = [
+    { label: '$1,000+ / month', min: 12000 },
+    { label: '$5,000+ / month', min: 60000 },
+    { label: '$10,000+ / month', min: 120000 },
+    { label: '$30,000+ / month', min: 360000 },
+    { label: '$50,000+ / month', min: 600000 }
+  ];
+
+  // Setup fee ranges
+  const setupFeeRanges = [
+    { label: 'Free ($0)', min: 0, max: 0 },
+    { label: 'Low ($1-$499)', min: 1, max: 499 },
+    { label: 'Medium ($500-$999)', min: 500, max: 999 },
+    { label: 'High ($1,000+)', min: 1000, max: Infinity }
+  ];
+
+  const partnerSubtypes = ["white_label", "reseller", "affiliate"];
+
+  // Additional filter state
+  const [selectedEarningRange, setSelectedEarningRange] = useState<string>("");
+  const [selectedSetupFeeRange, setSelectedSetupFeeRange] = useState<string>("");
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.niche.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      product.pitch.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.tags?.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // Check if product matches any selected tags from any category
-    const selectedTagIds = Object.values(selectedTagsByCategory).flat();
-    const matchesTags = selectedTagIds.length === 0 || 
-      product.tagData.some(tag => selectedTagIds.includes(tag.id));
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.some(tag => product.tags?.some(t => t.name === tag));
 
     const matchesSubtypes = selectedSubtypes.length === 0 || 
       selectedSubtypes.some(subtype => product.partner_terms[subtype]);
 
-    return matchesSearch && matchesTags && matchesSubtypes;
+    const matchesEarningRange = !selectedEarningRange || 
+      (product.annual_income_potential && 
+       product.annual_income_potential >= monthlyEarningRanges.find(r => r.label === selectedEarningRange)?.min);
+
+    const matchesSetupFeeRange = !selectedSetupFeeRange || (() => {
+      const range = setupFeeRanges.find(r => r.label === selectedSetupFeeRange);
+      const fee = product.setup_fee || 0;
+      return range && fee >= range.min && fee <= range.max;
+    })();
+
+    return matchesSearch && matchesTags && matchesSubtypes && matchesEarningRange && matchesSetupFeeRange;
   });
 
-  const toggleTag = (category: string, tagId: string) => {
-    setSelectedTagsByCategory(prev => {
-      const categoryTags = prev[category] || [];
-      const newCategoryTags = categoryTags.includes(tagId)
-        ? categoryTags.filter(id => id !== tagId)
-        : [...categoryTags, tagId];
-      
-      return {
-        ...prev,
-        [category]: newCategoryTags
-      };
-    });
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
   };
 
   const toggleSubtype = (subtype: string) => {
@@ -160,14 +205,11 @@ const Marketplace = () => {
 
   const clearFilters = () => {
     setSelectedTags([]);
-    setSelectedTagsByCategory({});
     setSelectedSubtypes([]);
+    setSelectedEarningRange("");
+    setSelectedSetupFeeRange("");
     setSearchQuery("");
     setSearchParams({});
-  };
-
-  const getTotalSelectedTags = () => {
-    return Object.values(selectedTagsByCategory).flat().length;
   };
 
   useEffect(() => {
@@ -224,306 +266,196 @@ const Marketplace = () => {
               </div>
             </div>
 
-            {/* Advanced Filters */}
+            {/* Filter Dropdowns */}
             <Card className="p-4">
               <div className="space-y-4">
-                {/* Quick Filters Row */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {/* Business Model */}
-                  {tagsByCategory['Business Model'] && (
-                    <div>
-                      <select 
-                        className="w-full p-2 border rounded-md text-sm"
-                        value={selectedTagsByCategory['Business Model']?.[0] || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            toggleTag('Business Model', e.target.value);
-                          }
-                        }}
-                      >
-                        <option value="">Business Model (0)</option>
-                        {tagsByCategory['Business Model'].map(tag => (
-                          <option key={tag.id} value={tag.id}>{tag.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+                {/* Basic Filters */}
+                <div className="flex flex-wrap gap-4 items-center">
+                  {/* Basic Category Filters */}
+                  {Object.entries(basicTags).map(([category, tags]) => {
+                    const categoryTags = tags as any[];
+                    return (
+                      <div key={category} className="min-w-[200px]">
+                        <Select
+                          value={selectedTags.find(tag => categoryTags.some((t: any) => t.name === tag)) || ""}
+                          onValueChange={(value) => {
+                            if (value) {
+                              toggleTag(value);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={`${category} (${selectedTags.filter(tag => categoryTags.some((t: any) => t.name === tag)).length})`} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categoryTags.map((tag: any) => (
+                              <SelectItem 
+                                key={tag.id} 
+                                value={tag.name}
+                                className={selectedTags.includes(tag.name) ? "bg-primary/10" : ""}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{tag.name}</span>
+                                  {selectedTags.includes(tag.name) && (
+                                    <X className="w-3 h-3 ml-2" />
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })}
 
-                  {/* Client Segment */}
-                  {tagsByCategory['Client Segment'] && (
-                    <div>
-                      <select 
-                        className="w-full p-2 border rounded-md text-sm"
-                        value={selectedTagsByCategory['Client Segment']?.[0] || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            toggleTag('Client Segment', e.target.value);
-                          }
-                        }}
-                      >
-                        <option value="">Client Segment (0)</option>
-                        {tagsByCategory['Client Segment'].map(tag => (
-                          <option key={tag.id} value={tag.id}>{tag.name}</option>
+                  {/* Monthly Earning Filter */}
+                  <div className="min-w-[200px]">
+                    <Select
+                      value={selectedEarningRange}
+                      onValueChange={setSelectedEarningRange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Monthly Earning" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthlyEarningRanges.map((range) => (
+                          <SelectItem key={range.label} value={range.label}>
+                            {range.label}
+                          </SelectItem>
                         ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Industry */}
-                  {tagsByCategory['Industry'] && (
-                    <div>
-                      <select 
-                        className="w-full p-2 border rounded-md text-sm"
-                        value={selectedTagsByCategory['Industry']?.[0] || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            toggleTag('Industry', e.target.value);
-                          }
-                        }}
-                      >
-                        <option value="">Industry (0)</option>
-                        {tagsByCategory['Industry'].map(tag => (
-                          <option key={tag.id} value={tag.id}>{tag.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Partner Type */}
-                  {tagsByCategory['Partner Type'] && (
-                    <div>
-                      <select 
-                        className="w-full p-2 border rounded-md text-sm"
-                        value={selectedTagsByCategory['Partner Type']?.[0] || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            toggleTag('Partner Type', e.target.value);
-                          }
-                        }}
-                      >
-                        <option value="">Partner Type (0)</option>
-                        {tagsByCategory['Partner Type'].map(tag => (
-                          <option key={tag.id} value={tag.id}>{tag.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Monthly Earning */}
-                  <div>
-                    <select className="w-full p-2 border rounded-md text-sm">
-                      <option value="">Monthly Earning</option>
-                      <option value="0-1000">$0 - $1,000</option>
-                      <option value="1000-5000">$1,000 - $5,000</option>
-                      <option value="5000-20000">$5,000 - $20,000</option>
-                      <option value="20000+">$20,000+</option>
-                    </select>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
 
-                {/* Advanced Filters Toggle */}
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className="flex items-center gap-2"
-                  >
-                    <Filter className="w-4 h-4" />
-                    Advanced Filters
-                    {showAdvancedFilters ? ' ▲' : ' ▼'}
-                  </Button>
-                  
-                  {getTotalSelectedTags() > 0 && (
-                    <span className="text-sm text-gray-600">
-                      {getTotalSelectedTags()} filters applied
-                    </span>
+                  {/* Clear Filters Button */}
+                  {(selectedTags.length > 0 || selectedSubtypes.length > 0 || selectedEarningRange || selectedSetupFeeRange) && (
+                    <Button variant="outline" size="sm" onClick={clearFilters}>
+                      <X className="w-4 h-4 mr-2" />
+                      Clear Filters ({selectedTags.length + selectedSubtypes.length + (selectedEarningRange ? 1 : 0) + (selectedSetupFeeRange ? 1 : 0)})
+                    </Button>
                   )}
                 </div>
 
-                {/* Advanced Filters Section */}
-                {showAdvancedFilters && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-                    {/* Geography */}
-                    {tagsByCategory['Geography'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Geography']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Geography', e.target.value);
-                            }
-                          }}
+                {/* Advanced Options Toggle */}
+                <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Advanced Filters
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4 pt-4">
+                    <div className="flex flex-wrap gap-4 items-center">
+                      {/* Advanced Category Filters */}
+                      {Object.entries(advancedTags).map(([category, tags]) => {
+                        const categoryTags = tags as any[];
+                        return (
+                          <div key={category} className="min-w-[200px]">
+                            <Select
+                              value={selectedTags.find(tag => categoryTags.some((t: any) => t.name === tag)) || ""}
+                              onValueChange={(value) => {
+                                if (value) {
+                                  toggleTag(value);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={`${category} (${selectedTags.filter(tag => categoryTags.some((t: any) => t.name === tag)).length})`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categoryTags.map((tag: any) => (
+                                  <SelectItem 
+                                    key={tag.id} 
+                                    value={tag.name}
+                                    className={selectedTags.includes(tag.name) ? "bg-primary/10" : ""}
+                                  >
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{tag.name}</span>
+                                      {selectedTags.includes(tag.name) && (
+                                        <X className="w-3 h-3 ml-2" />
+                                      )}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Setup Fee Filter */}
+                      <div className="min-w-[200px]">
+                        <Select
+                          value={selectedSetupFeeRange}
+                          onValueChange={setSelectedSetupFeeRange}
                         >
-                          <option value="">Geography (0)</option>
-                          {tagsByCategory['Geography'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Setup Fee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {setupFeeRanges.map((range) => (
+                              <SelectItem key={range.label} value={range.label}>
+                                {range.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
-
-                    {/* Hosting */}
-                    {tagsByCategory['Hosting'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Hosting']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Hosting', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Hosting (0)</option>
-                          {tagsByCategory['Hosting'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Product Scale */}
-                    {tagsByCategory['Product Scale'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Product Scale']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Product Scale', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Product Scale (0)</option>
-                          {tagsByCategory['Product Scale'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Quality */}
-                    {tagsByCategory['Quality'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Quality']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Quality', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Quality (0)</option>
-                          {tagsByCategory['Quality'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Setup */}
-                    {tagsByCategory['Setup'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Setup']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Setup', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Setup (0)</option>
-                          {tagsByCategory['Setup'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Technology */}
-                    {tagsByCategory['Technology'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Technology']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Technology', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Technology (0)</option>
-                          {tagsByCategory['Technology'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Use-Case */}
-                    {tagsByCategory['Use-Case'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Use-Case']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Use-Case', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Use-Case (0)</option>
-                          {tagsByCategory['Use-Case'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Vendor Support */}
-                    {tagsByCategory['Vendor Support'] && (
-                      <div>
-                        <select 
-                          className="w-full p-2 border rounded-md text-sm"
-                          value={selectedTagsByCategory['Vendor Support']?.[0] || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              toggleTag('Vendor Support', e.target.value);
-                            }
-                          }}
-                        >
-                          <option value="">Vendor Support (0)</option>
-                          {tagsByCategory['Vendor Support'].map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Setup Fee */}
-                    <div>
-                      <select className="w-full p-2 border rounded-md text-sm">
-                        <option value="">Setup Fee</option>
-                        <option value="0">$0</option>
-                        <option value="1-499">$1 - $499</option>
-                        <option value="500-999">$500 - $999</option>
-                        <option value="1000+">$1,000+</option>
-                      </select>
                     </div>
-                  </div>
-                )}
-
-                {(getTotalSelectedTags() > 0 || selectedSubtypes.length > 0 || searchQuery) && (
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    <X className="w-4 h-4 mr-2" />
-                    Clear Filters
-                  </Button>
-                )}
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
+
+              {/* Selected Filters Display */}
+              {(selectedTags.length > 0 || selectedSubtypes.length > 0 || selectedEarningRange || selectedSetupFeeRange) && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTags.map(tag => (
+                      <Badge
+                        key={tag}
+                        variant="default"
+                        className="cursor-pointer"
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    ))}
+                    {selectedSubtypes.map(subtype => (
+                      <Badge
+                        key={subtype}
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => toggleSubtype(subtype)}
+                      >
+                        {subtype.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    ))}
+                    {selectedEarningRange && (
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer"
+                        onClick={() => setSelectedEarningRange("")}
+                      >
+                        {selectedEarningRange}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    )}
+                    {selectedSetupFeeRange && (
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer"
+                        onClick={() => setSelectedSetupFeeRange("")}
+                      >
+                        {selectedSetupFeeRange}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
 

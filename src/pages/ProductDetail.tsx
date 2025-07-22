@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -10,11 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText } from "lucide-react";
+import { Building, MessageSquare, ExternalLink, ArrowLeft, Users, DollarSign, Calculator, Star, Check, TrendingUp, Zap, FileText, PlayCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PricingTiersSection } from "@/components/pricing/PricingTiersSection";
 import { ROICalculator } from "@/components/ROICalculator";
+// Removed PartnerOnboarding import - now using navigation to onboarding page
+import { TagDisplay } from "@/components/TagDisplay";
+import { TagCategoryDisplay } from "@/components/TagCategoryDisplay";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -22,7 +24,9 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const [product, setProduct] = useState<any>(null);
   const [vendor, setVendor] = useState<any>(null);
+  const [productTags, setProductTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [calculatorValues, setCalculatorValues] = useState({
     price: 1000,
     deals: 5,
@@ -44,21 +48,10 @@ const ProductDetail = () => {
       
       console.log('Looking for product:', productName);
       
-      // Fetch product by name with tags
+      // Fetch product by name
       const { data: productData, error: productError } = await supabase
         .from('products')
-        .select(`
-          *,
-          product_tags (
-            tags (
-              id,
-              name,
-              slug,
-              category,
-              color_hex
-            )
-          )
-        `)
+        .select('*')
         .ilike('name', `%${productName}%`)
         .eq('status', 'approved')
         .single();
@@ -71,6 +64,26 @@ const ProductDetail = () => {
       }
 
       setProduct(productData);
+
+      // Fetch product tags
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('product_tags')
+        .select(`
+          tags (
+            id,
+            name,
+            color_hex,
+            category,
+            is_featured,
+            sort_order
+          )
+        `)
+        .eq('product_id', productData.id);
+
+      if (!tagsError && tagsData) {
+        const tags = tagsData.map(item => item.tags).filter(Boolean);
+        setProductTags(tags);
+      }
 
       // Fetch vendor info
       if (productData.vendor_id) {
@@ -155,6 +168,34 @@ const ProductDetail = () => {
     }
   };
 
+  // Get featured tags and range tags for header display
+  const featuredTags = productTags.filter(tag => tag.is_featured);
+  const getRangeTags = () => {
+    const rangeTags = [];
+    if (product.commission_rate) {
+      const range = product.commission_rate <= 10 ? '0–10%' : 
+                   product.commission_rate <= 30 ? '11–30%' : 
+                   product.commission_rate <= 50 ? '31–50%' : '50%+';
+      rangeTags.push({ name: `${range} Commission`, color_hex: '#06D6A0' });
+    }
+    if (product.annual_income_potential) {
+      const monthlyIncome = product.annual_income_potential / 12;
+      const range = monthlyIncome < 1000 ? '<$1K/mo' :
+                   monthlyIncome <= 4999 ? '$1K–5K/mo' :
+                   monthlyIncome <= 19999 ? '$5K–20K/mo' :
+                   monthlyIncome <= 99999 ? '$20K–100K/mo' : '$100K+/mo';
+      rangeTags.push({ name: range, color_hex: '#FFD60A' });
+    }
+    if (product.average_deal_size) {
+      const range = product.average_deal_size < 100 ? '<$100' :
+                   product.average_deal_size <= 999 ? '$100–999' :
+                   product.average_deal_size <= 4999 ? '$1K–5K' :
+                   product.average_deal_size <= 19999 ? '$5K–20K' : '$20K+ deals';
+      rangeTags.push({ name: range, color_hex: '#FB8500' });
+    }
+    return rangeTags;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -182,21 +223,19 @@ const ProductDetail = () => {
                   <Building className="w-5 h-5 text-muted-foreground" />
                   <span className="text-muted-foreground">{vendor?.company_name || 'Unknown Vendor'}</span>
                   <Badge variant="outline">{vendor?.niche || 'General'}</Badge>
-                  {/* Product Tags */}
-                  {product.product_tags?.map((pt, idx) => (
-                    <Badge 
-                      key={idx}
-                      variant="secondary"
-                      style={{ backgroundColor: pt.tags?.color_hex + '20', color: pt.tags?.color_hex }}
-                    >
-                      {pt.tags?.name}
-                    </Badge>
-                  ))}
                 </div>
                 <CardTitle className="text-3xl">{product.name}</CardTitle>
+
                 <CardDescription className="text-lg">
                   {product.description || 'No description available'}
                 </CardDescription>
+
+                {/* Detailed Description */}
+                <div className="pt-2">
+                  <p className="text-foreground leading-relaxed">
+                    Start a thriving e-learning business under your own brand with zero hassle. Our fully white-label AI training platform lets you offer corporate learning solutions without managing content creation, assessment development, or support—we handle it all. Focus on growing your profits and brand!
+                  </p>
+                </div>
               </CardHeader>
               <CardContent>
                 {/* Extended Description */}
@@ -208,8 +247,8 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                {/* Clean Overview */}
-                <div className="space-y-4 mb-6">
+                {/* Tags Overview with Subtle Shadow */}
+                <div className="space-y-4 mb-6 p-4 rounded-lg shadow-sm bg-background border border-border/40">
                   {/* Partner Types - Simple text with dots */}
                   <div>
                     <span className="text-sm text-muted-foreground">Perfect for: </span>
@@ -234,8 +273,47 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
+                {/* Demo Video */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center">
+                    <PlayCircle className="w-5 h-5 mr-2" />
+                    Product Demo
+                  </h3>
+                  <div className="aspect-video rounded-lg overflow-hidden">
+                    {vendor?.demo_video_file_url ? (
+                      <video
+                        src={vendor.demo_video_file_url}
+                        controls
+                        className="w-full h-full object-cover"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                        title="Product Demo"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-3">
-                  <Button onClick={handleStartChat} size="lg">
+                  <Button 
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        productId: product.id,
+                        productName: product.name
+                      });
+                      navigate(`/onboard/partner?${params.toString()}`);
+                    }} 
+                    size="lg"
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Apply Now
                   </Button>
@@ -245,40 +323,6 @@ const ProductDetail = () => {
                       Visit Website
                     </a>
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Demo Video */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Demo</CardTitle>
-                <CardDescription>
-                  See how the platform works in action
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video rounded-lg overflow-hidden">
-                  {vendor?.demo_video_file_url ? (
-                    <video
-                      src={vendor.demo_video_file_url}
-                      controls
-                      className="w-full h-full object-cover"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                      title="Product Demo"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -497,56 +541,19 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Apply
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Apply for Partnership</DialogTitle>
-                        <DialogDescription>
-                          Fill out this form to apply for a partnership with {vendor?.company_name || 'this vendor'}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form className="space-y-4">
-                        <div>
-                          <Label htmlFor="name">Full Name</Label>
-                          <Input id="name" placeholder="Enter your full name" />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" placeholder="Enter your email" />
-                        </div>
-                        <div>
-                          <Label htmlFor="company">Company</Label>
-                          <Input id="company" placeholder="Enter your company name" />
-                        </div>
-                        <div>
-                          <Label htmlFor="experience">Experience</Label>
-                          <Textarea 
-                            id="experience" 
-                            placeholder="Tell us about your experience in sales/partnerships..."
-                            rows={3}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="partnership-type">Preferred Partnership Type</Label>
-                          <select className="w-full p-2 border rounded-md">
-                            <option value="none">Select partnership type</option>
-                            <option value="reseller">Reseller</option>
-                            <option value="affiliate">Affiliate</option>
-                            <option value="white_label">White Label</option>
-                          </select>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          Submit Application
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
+                  <Button 
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        productId: product.id,
+                        productName: product.name
+                      });
+                      navigate(`/onboard/partner?${params.toString()}`);
+                    }}
+                    className="w-full"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Apply
+                  </Button>
 
                   <Button 
                     onClick={handleStartChat} 
@@ -560,9 +567,17 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
+            {/* Tags by Category */}
+            <TagCategoryDisplay 
+              tags={productTags}
+              title="Product Tags"
+              showEmpty={true}
+            />
+
           </div>
         </div>
       </div>
+
     </div>
   );
 };

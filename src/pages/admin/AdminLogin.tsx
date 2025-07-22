@@ -10,28 +10,46 @@ import { Mail, Settings } from 'lucide-react';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Temporary bypass - just store email in localStorage and redirect
-      localStorage.setItem('temp_admin_email', email);
-      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (profile?.role !== 'admin') {
+        await supabase.auth.signOut();
+        throw new Error('Access denied. Admin privileges required.');
+      }
+
       toast({
-        title: "Logged in!",
-        description: `Temporarily logged in as ${email}`
+        title: "Logged in successfully!",
+        description: "Welcome to the admin console."
       });
       
-      // Redirect to admin overview
       navigate('/admin/overview');
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Authentication Error",
         description: error.message,
         variant: "destructive"
       });
@@ -46,19 +64,30 @@ export default function AdminLogin() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Admin Console</CardTitle>
           <CardDescription>
-            Enter your admin email to access the console (temporary bypass active)
+            Sign in with your admin credentials to access the console
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleMagicLink} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Admin Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="admin@rezollo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -71,7 +100,7 @@ export default function AdminLogin() {
               ) : (
                 <>
                   <Settings className="mr-2 h-4 w-4" />
-                  Sign In (Temporary)
+                  Sign In to Admin Console
                 </>
               )}
             </Button>
