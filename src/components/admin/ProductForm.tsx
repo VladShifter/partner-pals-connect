@@ -40,7 +40,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
+  const [tags, setTags] = useState<Array<{ id: string; name: string; color_hex: string; category?: string; sort_order?: number }>>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const [productExists, setProductExists] = useState(false);
@@ -105,7 +105,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
     try {
       const { data, error } = await supabase
         .from('tags')
-        .select('*')
+        .select('id, name, color_hex, category, sort_order')
         .eq('is_global', true)
         .order('category', { ascending: true })
         .order('sort_order', { ascending: true });
@@ -591,33 +591,51 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
               <CardHeader>
                 <CardTitle>Tags & Categories</CardTitle>
                 <CardDescription>
-                  Select tags that describe this product
+                  Select tags that describe this product, organized by category
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
-                      <Badge
-                        key={tag.id}
-                        variant={selectedTags.includes(tag.id) ? "default" : "outline"}
-                        className="cursor-pointer transition-all hover:scale-105"
-                        style={{
-                          backgroundColor: selectedTags.includes(tag.id) ? tag.color_hex : 'transparent',
-                          color: selectedTags.includes(tag.id) ? 'white' : tag.color_hex,
-                          borderColor: tag.color_hex
-                        }}
-                        onClick={() => toggleTag(tag.id)}
-                      >
-                        {tag.name}
-                        {selectedTags.includes(tag.id) && (
-                          <X className="w-3 h-3 ml-1" />
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
+                <div className="space-y-6">
+                  {/* Group tags by category */}
+                  {Object.entries(
+                    tags.reduce((acc, tag) => {
+                      const category = tag.category || 'Other';
+                      if (!acc[category]) {
+                        acc[category] = [];
+                      }
+                      acc[category].push(tag);
+                      return acc;
+                    }, {} as Record<string, any[]>)
+                  ).map(([category, categoryTags]) => (
+                    <div key={category} className="space-y-2">
+                      <h4 className="font-medium text-sm text-gray-700 uppercase tracking-wide">
+                        {category}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {categoryTags.map(tag => (
+                          <Badge
+                            key={tag.id}
+                            variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            style={{
+                              backgroundColor: selectedTags.includes(tag.id) ? tag.color_hex : 'transparent',
+                              color: selectedTags.includes(tag.id) ? 'white' : tag.color_hex,
+                              borderColor: tag.color_hex
+                            }}
+                            onClick={() => toggleTag(tag.id)}
+                          >
+                            {tag.name}
+                            {selectedTags.includes(tag.id) && (
+                              <X className="w-3 h-3 ml-1" />
+                            )}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  
                   {selectedTags.length > 0 && (
-                    <div className="pt-2 border-t">
+                    <div className="pt-4 border-t">
                       <p className="text-sm text-gray-500">
                         Selected tags: {selectedTags.length}
                       </p>
