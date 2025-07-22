@@ -96,13 +96,20 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
           description: "Product updated successfully"
         });
       } else {
-        // Create new product
+        // Create new product - generate slug from name
+        const slug = data.name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
+        
         const { error } = await supabase
           .from('products')
           .insert([{
             ...data,
             vendor_id: vendorId,
-            status: 'pending'
+            status: 'pending',
+            slug
           }]);
 
         if (error) throw error;

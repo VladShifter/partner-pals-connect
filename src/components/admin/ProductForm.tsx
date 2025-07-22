@@ -199,10 +199,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
           .update(filteredData)
           .eq('id', updateId);
       } else {
-        // Create new product
+        // Create new product - generate slug from name
+        const slug = filteredData.name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
+        
         result = await supabase
           .from('products')
-          .insert([filteredData]);
+          .insert([{ ...filteredData, slug }]);
       }
 
       if (result.error) {
