@@ -469,17 +469,17 @@ const VendorDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="products">Product and Analytics</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="white-label">White Label Resellers</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
             <TabsTrigger value="chats">Chats</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          {/* Products Tab */}
+          {/* Product and Analytics Tab */}
           <TabsContent value="products" className="space-y-6">
+            {/* Products Section */}
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
               <Button onClick={handleAddProduct}>
@@ -524,6 +524,196 @@ const VendorDashboard = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+
+            {/* Analytics Section */}
+            <div className="pt-8 border-t border-gray-200">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Analytics & Performance</h2>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline">Last 30 days</Badge>
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    Export
+                  </Button>
+                </div>
+              </div>
+
+              {/* Top Level Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center text-sm text-blue-700">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Product Views
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-900">1,247</div>
+                    <div className="flex items-center text-xs text-blue-600 mt-1">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      +12.5% vs last month
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center text-sm text-green-700">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Chats Started
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-900">89</div>
+                    <div className="flex items-center text-xs text-green-600 mt-1">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      +8.3% vs last month
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center text-sm text-purple-700">
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      Closed Clients
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-900">43</div>
+                    <div className="flex items-center text-xs text-purple-600 mt-1">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      +15.2% vs last month
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center text-sm text-amber-700">
+                      <Target className="w-4 h-4 mr-2" />
+                      Conversion Rate
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-amber-900">7.1%</div>
+                    <div className="flex items-center text-xs text-amber-600 mt-1">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Views to chats
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Performance by Product */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    Product Performance
+                  </CardTitle>
+                  <CardDescription>Performance metrics by product</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {products.map((product, index) => {
+                      const views = [523, 412, 312][index] || 0;
+                      const chats = [45, 28, 16][index] || 0;
+                      const clients = [23, 12, 8][index] || 0;
+                      const conversionRate = views > 0 ? ((chats / views) * 100).toFixed(1) : '0.0';
+                      
+                      return (
+                        <div key={product.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-gray-900">{product.name}</h4>
+                            <Badge variant="outline">{product.status}</Badge>
+                          </div>
+                          <div className="grid grid-cols-4 gap-4 text-sm">
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-blue-600">{views}</div>
+                              <div className="text-gray-500">Views</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-green-600">{chats}</div>
+                              <div className="text-gray-500">Chats</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-purple-600">{clients}</div>
+                              <div className="text-gray-500">Clients</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-amber-600">{conversionRate}%</div>
+                              <div className="text-gray-500">Conv. Rate</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Partner Performance */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Top Partner Performance
+                  </CardTitle>
+                  <CardDescription>Revenue generated by top partners</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {connectedPartners
+                      .sort((a, b) => b.total_revenue - a.total_revenue)
+                      .map((partner, index) => (
+                        <div key={partner.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium text-blue-600">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{partner.name}</p>
+                              <p className="text-sm text-gray-500">{partner.company} • {partner.type}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900">${partner.total_revenue.toLocaleString()}</p>
+                            <p className="text-sm text-gray-500">{partner.closed_deals} deals</p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Referral Link Analytics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Share2 className="w-5 h-5 mr-2" />
+                    Referral Link Performance
+                  </CardTitle>
+                  <CardDescription>Clicks and conversions from referral links</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">156</div>
+                      <div className="text-sm text-blue-700">Total Clicks</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">23</div>
+                      <div className="text-sm text-green-700">Conversions</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">14.7%</div>
+                      <div className="text-sm text-purple-700">Click-to-Chat Rate</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -921,195 +1111,6 @@ const VendorDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Analytics & Performance</h2>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">Last 30 days</Badge>
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="w-4 h-4 mr-1" />
-                  Export
-                </Button>
-              </div>
-            </div>
-
-            {/* Top Level Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-sm text-blue-700">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Product Views
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-900">1,247</div>
-                  <div className="flex items-center text-xs text-blue-600 mt-1">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +12.5% vs last month
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-sm text-green-700">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Chats Started
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-900">89</div>
-                  <div className="flex items-center text-xs text-green-600 mt-1">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +8.3% vs last month
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-sm text-purple-700">
-                    <UserCheck className="w-4 h-4 mr-2" />
-                    Closed Clients
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-900">43</div>
-                  <div className="flex items-center text-xs text-purple-600 mt-1">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +15.2% vs last month
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-sm text-amber-700">
-                    <Target className="w-4 h-4 mr-2" />
-                    Conversion Rate
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-amber-900">7.1%</div>
-                  <div className="flex items-center text-xs text-amber-600 mt-1">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    Views to chats
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Performance by Product */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2" />
-                  Product Performance
-                </CardTitle>
-                <CardDescription>Performance metrics by product</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {products.map((product, index) => {
-                    const views = [523, 412, 312][index] || 0;
-                    const chats = [45, 28, 16][index] || 0;
-                    const clients = [23, 12, 8][index] || 0;
-                    const conversionRate = views > 0 ? ((chats / views) * 100).toFixed(1) : '0.0';
-                    
-                    return (
-                      <div key={product.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium text-gray-900">{product.name}</h4>
-                          <Badge variant="outline">{product.status}</Badge>
-                        </div>
-                        <div className="grid grid-cols-4 gap-4 text-sm">
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-blue-600">{views}</div>
-                            <div className="text-gray-500">Views</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-green-600">{chats}</div>
-                            <div className="text-gray-500">Chats</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-purple-600">{clients}</div>
-                            <div className="text-gray-500">Clients</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-amber-600">{conversionRate}%</div>
-                            <div className="text-gray-500">Conv. Rate</div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Partner Performance */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Top Partner Performance
-                </CardTitle>
-                <CardDescription>Revenue generated by top partners</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {connectedPartners
-                    .sort((a, b) => b.total_revenue - a.total_revenue)
-                    .map((partner, index) => (
-                      <div key={partner.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium text-blue-600">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{partner.name}</p>
-                            <p className="text-sm text-gray-500">{partner.company} • {partner.type}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-900">${partner.total_revenue.toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">{partner.closed_deals} deals</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Referral Link Analytics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Share2 className="w-5 h-5 mr-2" />
-                  Referral Link Performance
-                </CardTitle>
-                <CardDescription>Clicks and conversions from referral links</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">156</div>
-                    <div className="text-sm text-blue-700">Total Clicks</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">23</div>
-                    <div className="text-sm text-green-700">Conversions</div>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">14.7%</div>
-                    <div className="text-sm text-purple-700">Click-to-Chat Rate</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
         {/* Product Form Modal */}
