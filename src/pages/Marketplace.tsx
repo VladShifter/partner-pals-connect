@@ -28,7 +28,7 @@ const Marketplace = () => {
     try {
       setLoading(true);
       
-      // Fetch products with vendor information
+      // Fetch products with vendor information and tags
       const { data: productsData, error } = await supabase
         .from('products')
         .select(`
@@ -39,6 +39,15 @@ const Marketplace = () => {
             pitch,
             website,
             banner_image_url
+          ),
+          product_tags (
+            tags (
+              id,
+              name,
+              slug,
+              category,
+              color_hex
+            )
           )
         `)
         .eq('status', 'approved')
@@ -53,12 +62,13 @@ const Marketplace = () => {
         vendor: product.vendors?.company_name || 'Unknown Vendor',
         niche: product.vendors?.niche || 'General',
         pitch: product.description || product.vendors?.pitch || '',
-        tags: [product.vendors?.niche || 'General'], // We'll expand this later
-        slug: product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        tags: product.product_tags?.map(pt => pt.tags?.name).filter(Boolean) || [product.vendors?.niche || 'General'],
+        slug: product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         image: product.vendors?.banner_image_url || getProductImage(product.vendors?.niche),
         partner_terms: getDefaultPartnerTerms(),
         price: product.price,
-        commission_rate: product.commission_rate
+        commission_rate: product.commission_rate,
+        tagData: product.product_tags?.map(pt => pt.tags).filter(Boolean) || []
       }));
 
       setProducts(transformedProducts);
@@ -90,6 +100,9 @@ const Marketplace = () => {
   });
 
   const allTags = Array.from(new Set(products.flatMap(p => p.tags)));
+  const allTagData = Array.from(
+    new Map(products.flatMap(p => p.tagData).map(tag => [tag.id, tag])).values()
+  );
   const partnerSubtypes = ["white_label", "reseller", "agent", "affiliate", "referral", "advisor"];
 
   const filteredProducts = products.filter(product => {
@@ -191,14 +204,15 @@ const Marketplace = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {allTags.map(tag => (
+                    {allTagData.map(tag => (
                       <Badge
-                        key={tag}
-                        variant={selectedTags.includes(tag) ? "default" : "outline"}
+                        key={tag.id}
+                        variant={selectedTags.includes(tag.name) ? "default" : "outline"}
                         className="cursor-pointer"
-                        onClick={() => toggleTag(tag)}
+                        style={selectedTags.includes(tag.name) ? { backgroundColor: tag.color_hex, color: 'white' } : {}}
+                        onClick={() => toggleTag(tag.name)}
                       >
-                        {tag}
+                        {tag.name}
                       </Badge>
                     ))}
                   </div>

@@ -44,10 +44,21 @@ const ProductDetail = () => {
       
       console.log('Looking for product:', productName);
       
-      // Fetch product by name
+      // Fetch product by name with tags
       const { data: productData, error: productError } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          product_tags (
+            tags (
+              id,
+              name,
+              slug,
+              category,
+              color_hex
+            )
+          )
+        `)
         .ilike('name', `%${productName}%`)
         .eq('status', 'approved')
         .single();
@@ -171,6 +182,16 @@ const ProductDetail = () => {
                   <Building className="w-5 h-5 text-muted-foreground" />
                   <span className="text-muted-foreground">{vendor?.company_name || 'Unknown Vendor'}</span>
                   <Badge variant="outline">{vendor?.niche || 'General'}</Badge>
+                  {/* Product Tags */}
+                  {product.product_tags?.map((pt, idx) => (
+                    <Badge 
+                      key={idx}
+                      variant="secondary"
+                      style={{ backgroundColor: pt.tags?.color_hex + '20', color: pt.tags?.color_hex }}
+                    >
+                      {pt.tags?.name}
+                    </Badge>
+                  ))}
                 </div>
                 <CardTitle className="text-3xl">{product.name}</CardTitle>
                 <CardDescription className="text-lg">

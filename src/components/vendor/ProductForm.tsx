@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { X } from 'lucide-react';
 
 interface Product {
   id?: string;
@@ -17,6 +19,7 @@ interface Product {
   commission_rate: number | null;
   status: 'pending' | 'approved' | 'rejected';
   vendor_id?: string;
+  slug?: string;
 }
 
 interface ProductFormProps {
@@ -30,6 +33,7 @@ interface ProductFormProps {
 export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: ProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [tags, setTags] = useState<Array<{ id: string; name: string; color_hex: string }>>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
 
   const form = useForm<Product>({
@@ -43,8 +47,10 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
   });
 
   useEffect(() => {
+    fetchTags();
     if (product) {
       form.reset(product);
+      fetchProductTags();
     } else {
       form.reset({
         name: '',
@@ -53,24 +59,71 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
         commission_rate: null,
         status: 'pending'
       });
+      setSelectedTags([]);
     }
   }, [product, form]);
-
-  useEffect(() => {
-    fetchTags();
-  }, []);
 
   const fetchTags = async () => {
     try {
       const { data, error } = await supabase
         .from('tags')
         .select('id, name, color_hex')
-        .eq('is_global', true);
+        .eq('is_global', true)
+        .order('category', { ascending: true })
+        .order('sort_order', { ascending: true });
 
       if (error) throw error;
       setTags(data || []);
     } catch (error) {
       console.error('Error fetching tags:', error);
+    }
+  };
+
+  const fetchProductTags = async () => {
+    if (!product?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('product_tags')
+        .select('tag_id')
+        .eq('product_id', product.id);
+
+      if (error) throw error;
+      setSelectedTags(data?.map(pt => pt.tag_id) || []);
+    } catch (error) {
+      console.error('Error fetching product tags:', error);
+    }
+  };
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const saveProductTags = async (productId: string) => {
+    try {
+      // Remove existing tags
+      await supabase
+        .from('product_tags')
+        .delete()
+        .eq('product_id', productId);
+
+      // Add new tags
+      if (selectedTags.length > 0) {
+        const tagInserts = selectedTags.map(tagId => ({
+          product_id: productId,
+          tag_id: tagId
+        }));
+
+        await supabase
+          .from('product_tags')
+          .insert(tagInserts);
+      }
+    } catch (error) {
+      console.error('Error saving product tags:', error);
     }
   };
 
@@ -85,11 +138,15 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
             name: data.name,
             description: data.description,
             price: data.price,
-            commission_rate: data.commission_rate
+            commission_rate: data.commission_rate,
+            slug: product.slug || data.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-')
           })
           .eq('id', product.id);
 
         if (error) throw error;
+        
+        // Save tags
+        await saveProductTags(product.id);
 
         toast({
           title: "Success",
@@ -103,16 +160,23 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
           .trim()
           .replace(/\s+/g, '-');
         
-        const { error } = await supabase
+        const { error, data: newProduct } = await supabase
           .from('products')
           .insert([{
             ...data,
             vendor_id: vendorId,
             status: 'pending',
             slug
-          }]);
+          }])
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        // Save tags for new product
+        if (newProduct) {
+          await saveProductTags(newProduct.id);
+        }
 
         toast({
           title: "Success",
@@ -217,6 +281,41 @@ export function ProductForm({ isOpen, onClose, onSuccess, product, vendorId }: P
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Tags Section */}
+            <div className="space-y-4">
+              <Label>Tags & Categories</Label>
+              <p className="text-sm text-gray-600">
+                Select tags that describe this product
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {tags.map(tag => (
+                  <Badge
+                    key={tag.id}
+                    variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                    className="cursor-pointer transition-all hover:scale-105"
+                    style={{
+                      backgroundColor: selectedTags.includes(tag.id) ? tag.color_hex : 'transparent',
+                      color: selectedTags.includes(tag.id) ? 'white' : tag.color_hex,
+                      borderColor: tag.color_hex
+                    }}
+                    onClick={() => toggleTag(tag.id)}
+                  >
+                    {tag.name}
+                    {selectedTags.includes(tag.id) && (
+                      <X className="w-3 h-3 ml-1" />
+                    )}
+                  </Badge>
+                ))}
+              </div>
+              {selectedTags.length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-gray-500">
+                    Selected tags: {selectedTags.length}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4">

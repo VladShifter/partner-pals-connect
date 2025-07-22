@@ -40,6 +40,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const [productExists, setProductExists] = useState(false);
 
@@ -65,6 +67,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
 
   useEffect(() => {
     fetchVendors();
+    fetchTags();
     if (vendorId) {
       fetchVendorProduct();
     } else if (productId) {
@@ -95,6 +98,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
       setProductExists(false);
       // Set default values for new product
       form.setValue('vendor_id', vendorId);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tags')
+        .select('*')
+        .eq('is_global', true)
+        .order('category', { ascending: true })
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      setTags(data || []);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
     }
   };
 
@@ -134,6 +153,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
     if (data) {
       setCurrentProduct(data);
       setProductExists(true);
+      
+      // Fetch product tags
+      const { data: productTagsData } = await supabase
+        .from('product_tags')
+        .select('tag_id')
+        .eq('product_id', productId);
+      
+      if (productTagsData) {
+        setSelectedTags(productTagsData.map(pt => pt.tag_id));
+      }
+      
       populateForm(data);
     }
   };
@@ -215,6 +245,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
         throw result.error;
       }
 
+      // Save tags for new or existing product
+      let actualProductId = currentProduct?.id || productId;
+      if (!actualProductId && result.data && result.data[0]) {
+        actualProductId = result.data[0].id;
+      }
+
+      if (actualProductId) {
+        await saveProductTags(actualProductId);
+      }
+
       toast({
         title: "Success",
         description: `Product ${productExists || productId ? 'updated' : 'created'} successfully`
@@ -237,6 +277,38 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const saveProductTags = async (productId: string) => {
+    try {
+      // Remove existing tags
+      await supabase
+        .from('product_tags')
+        .delete()
+        .eq('product_id', productId);
+
+      // Add new tags
+      if (selectedTags.length > 0) {
+        const tagInserts = selectedTags.map(tagId => ({
+          product_id: productId,
+          tag_id: tagId
+        }));
+
+        await supabase
+          .from('product_tags')
+          .insert(tagInserts);
+      }
+    } catch (error) {
+      console.error('Error saving product tags:', error);
     }
   };
 
@@ -513,6 +585,47 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, vendorId, onSucces
               {renderArrayField('getting_customers', 'Getting Customers (Easy Ways to Get Customers)', 'Enter a customer acquisition method')}
               {renderArrayField('launch_steps', 'Launch Steps (How To Launch)', 'Enter a launch step')}
             </div>
+
+            {/* Tags Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tags & Categories</CardTitle>
+                <CardDescription>
+                  Select tags that describe this product
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map(tag => (
+                      <Badge
+                        key={tag.id}
+                        variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                        className="cursor-pointer transition-all hover:scale-105"
+                        style={{
+                          backgroundColor: selectedTags.includes(tag.id) ? tag.color_hex : 'transparent',
+                          color: selectedTags.includes(tag.id) ? 'white' : tag.color_hex,
+                          borderColor: tag.color_hex
+                        }}
+                        onClick={() => toggleTag(tag.id)}
+                      >
+                        {tag.name}
+                        {selectedTags.includes(tag.id) && (
+                          <X className="w-3 h-3 ml-1" />
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                  {selectedTags.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <p className="text-sm text-gray-500">
+                        Selected tags: {selectedTags.length}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="flex justify-end space-x-2">
               <Button type="submit" disabled={loading}>
