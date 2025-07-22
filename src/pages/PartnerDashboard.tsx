@@ -298,9 +298,12 @@ const PartnerDashboard = () => {
                   <div className="text-center py-8">
                     <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">No profile information available</p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Complete a partnership application to create your profile
+                    <p className="text-sm text-gray-500 mt-2 mb-4">
+                      Complete your partnership profile to unlock more opportunities
                     </p>
+                    <Button onClick={() => window.location.href = '/partner/onboard'}>
+                      Fill Profile
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
