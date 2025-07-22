@@ -22,7 +22,6 @@ interface ProfileOnboardingProps {
 
 interface ProfileData {
   name: string;
-  phone: string;
   partner_roles: string[];
   entity_type: 'individual' | 'company';
   company_name: string;
@@ -126,7 +125,6 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<ProfileData>({
     name: "",
-    phone: "",
     partner_roles: [],
     entity_type: 'individual',
     company_name: "",
@@ -191,7 +189,14 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({
     try {
       if (!currentUser) throw new Error('No user found');
 
-      // Create a partner application record to store the profile data
+      // Check if user already has a profile application
+      const { data: existingApplication } = await supabase
+        .from("partner_applications")
+        .select("id")
+        .eq("user_id", currentUser.id)
+        .eq("product_id", null)
+        .single();
+
       const applicationData = {
         ...profileData,
         user_id: currentUser.id,
@@ -202,9 +207,21 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({
         completed_steps: Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1),
       };
 
-      const { error } = await supabase
-        .from("partner_applications")
-        .insert(applicationData);
+      let error;
+      if (existingApplication) {
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from("partner_applications")
+          .update(applicationData)
+          .eq("id", existingApplication.id);
+        error = updateError;
+      } else {
+        // Create new profile
+        const { error: insertError } = await supabase
+          .from("partner_applications")
+          .insert(applicationData);
+        error = insertError;
+      }
       
       if (error) throw error;
       
@@ -258,18 +275,6 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({
                 />
               </div>
               
-              <div>
-                <Label htmlFor="phone" className="text-base font-medium">
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  value={profileData.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  className="mt-2 h-12"
-                />
-              </div>
             </div>
           </div>
         );
