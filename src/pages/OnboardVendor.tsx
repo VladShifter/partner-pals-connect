@@ -122,7 +122,7 @@ const OnboardVendor = () => {
         title: "🎉 Application Submitted Successfully!",
         description: "Your vendor application has been submitted for review. We'll contact you within 24-48 hours.",
       });
-      navigate("/dashboard/vendor");
+      navigate("/vendor/dashboard");
     }, 1000);
   };
 
