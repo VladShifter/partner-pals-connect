@@ -10,6 +10,7 @@ import { VendorForm } from "@/components/vendor/VendorForm";
 import { PartnerApplications } from "@/components/vendor/PartnerApplications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { 
   Package, 
@@ -37,6 +38,8 @@ import {
 const VendorDashboard = () => {
   const [vendor, setVendor] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
+  const [partnerApplications, setPartnerApplications] = useState<any[]>([]);
+  const [connectedPartners, setConnectedPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showVendorForm, setShowVendorForm] = useState(false);
@@ -44,64 +47,80 @@ const VendorDashboard = () => {
   const [editingVendor, setEditingVendor] = useState<any>(null);
   const [expandedApplications, setExpandedApplications] = useState<Set<string>>(new Set());
   const { toast } = useToast();
-
-  // Development mode - use mock user
-  const DEVELOPMENT_MODE = true;
-  const currentUser = DEVELOPMENT_MODE ? {
-    id: 'vendor-1',
-    email: 'vendor@demo.com'
-  } : {
-    id: 'temp-user-id',
-    email: localStorage.getItem('temp_admin_email') || 'admin@rezollo.com'
-  };
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchVendorData();
   }, []);
 
   const fetchVendorData = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // For demo purposes, we'll use a mock vendor since we don't have real auth
-      // In production, this would fetch based on the authenticated user
-      const mockVendor = {
-        id: 'vendor-1',
-        user_id: currentUser.id,
-        company_name: 'TechFlow Solutions',
-        website: 'https://techflow.com',
-        niche: 'SaaS',
-        pitch: 'We create innovative software solutions for modern businesses.',
-        status: 'approved'
-      };
+      // Fetch vendor data based on authenticated user
+      const { data: vendorData, error: vendorError } = await supabase
+        .from('vendors')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (vendorError) {
+        console.error('Vendor query error:', vendorError);
+        setVendor(null);
+        setProducts([]);
+        setPartnerApplications([]);
+        setConnectedPartners([]);
+        setLoading(false);
+        return;
+      }
+
+      setVendor(vendorData);
       
-      setVendor(mockVendor);
-      
-      // Fetch products using a proper UUID query
+      // Fetch products for this vendor
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
-        .eq('vendor_id', mockVendor.id)
+        .eq('vendor_id', vendorData.id)
         .order('created_at', { ascending: false });
 
       if (productsError) {
         console.error('Products query error:', productsError);
-        // Set empty array if error
         setProducts([]);
       } else {
-        // Add mock marketplace product for demo
-        const mockMarketplaceProduct = {
-          id: 'marketplace-1',
-          name: 'CloudCRM Pro',
-          description: 'Advanced CRM solution for growing businesses',
-          price: 299,
-          commission_rate: 25,
-          status: 'approved',
-          created_at: '2024-01-01T00:00:00Z',
-          vendor_id: mockVendor.id,
-          slug: 'cloudcrm-pro'
-        };
-        setProducts([mockMarketplaceProduct, ...(productsData || [])]);
+        setProducts(productsData || []);
+      }
+
+      // Fetch partner applications for vendor's products
+      if (productsData && productsData.length > 0) {
+        const productIds = productsData.map(p => p.id);
+        
+        const { data: applicationsData, error: applicationsError } = await supabase
+          .from('partner_applications')
+          .select(`
+            *,
+            products!inner(name)
+          `)
+          .in('product_id', productIds)
+          .order('created_at', { ascending: false });
+
+        if (applicationsError) {
+          console.error('Applications query error:', applicationsError);
+          setPartnerApplications([]);
+        } else {
+          setPartnerApplications(applicationsData || []);
+        }
+
+        // Get approved applications to count as connected partners
+        const approvedApplications = (applicationsData || []).filter(app => app.status === 'approved');
+        setConnectedPartners(approvedApplications);
+      } else {
+        setPartnerApplications([]);
+        setConnectedPartners([]);
       }
       
     } catch (error: any) {
@@ -117,11 +136,6 @@ const VendorDashboard = () => {
   };
 
   const handleEditProduct = (product: any) => {
-    // Navigate to product edit page if it's a marketplace product
-    if (product.id === 'marketplace-1') {
-      window.location.href = `/admin/products/${product.slug}/edit`;
-      return;
-    }
     setEditingProduct(product);
     setShowProductForm(true);
   };
@@ -150,234 +164,26 @@ const VendorDashboard = () => {
     fetchVendorData();
   };
 
-  // Mock data for partner applications
-  const partnerApplications = [
-    {
-      id: "app-1",
-      name: "Michael Rodriguez",
-      email: "michael@growthpartners.com",
-      company_name: "Growth Partners LLC",
-      partner_type: "reseller",
-      status: "approved",
-      experience_years: 5,
-      team_size: 8,
-      monthly_revenue: 150000,
-      target_market: "Small to medium-sized businesses in North America",
-      marketing_channels: ["LinkedIn", "Cold Email", "Referrals"],
-      partnership_goals: ["Revenue Growth", "Market Expansion"],
-      created_at: "2024-01-15T10:00:00Z",
-      product_name: "CloudCRM Pro",
-      linkedin_url: "https://linkedin.com/in/michael-rodriguez-sales",
-      // Full application data
-      phone: "+1-555-0123",
-      website_url: "https://growthpartners.com",
-      company_description: "We specialize in helping SaaS companies scale through strategic partnerships and proven sales methodologies.",
-      why_interested: "Your CRM solution aligns perfectly with our client base of growing B2B companies. We see significant potential for cross-selling opportunities.",
-      previous_partnerships: "Successfully partnered with Salesforce, HubSpot, and Pipedrive, generating over $2M in partner revenue in the last 24 months.",
-      revenue_goals: 500000,
-      country: "United States",
-      industry: "Sales & Marketing Technology",
-      business_model: "Consultancy with commission-based partnerships",
-      audience_size: "~5,000 qualified prospects in our database",
-      active_marketing_channels: "LinkedIn outreach (500+ connections/month), Email campaigns (10k+ subscribers), Referral network of 50+ consultants",
-      individual_type: "Sales Director",
-      entity_type: "company",
-      partner_roles: ["Reseller", "Lead Generator"],
-      social_profiles: "LinkedIn: @michael-rodriguez-sales, Twitter: @MikeGrowthPro",
-      communication_preference: "chat"
-    },
-    {
-      id: "app-2", 
-      name: "Sarah Chen",
-      email: "sarah@asiaexpansion.co",
-      company_name: "Asia Expansion Co",
-      partner_type: "white_label",
-      status: "pending",
-      experience_years: 8,
-      team_size: 15,
-      monthly_revenue: 250000,
-      target_market: "Enterprise clients in Southeast Asia",
-      marketing_channels: ["Content Marketing", "Events", "Partnerships"],
-      partnership_goals: ["White Label", "Geographic Expansion"],
-      created_at: "2024-01-20T14:30:00Z",
-      product_name: "CloudCRM Pro",
-      linkedin_url: "https://linkedin.com/in/sarah-chen-asia",
-      // Full application data
-      phone: "+65-9123-4567",
-      website_url: "https://asiaexpansion.co",
-      company_description: "Leading technology consultancy focused on helping Western SaaS companies establish and scale operations across Southeast Asian markets.",
-      why_interested: "We want to offer white-label CRM solutions to our enterprise clients who need localized, region-specific implementations.",
-      previous_partnerships: "White-label partnerships with 3 major SaaS providers, helping them enter Singapore, Malaysia, and Thailand markets.",
-      revenue_goals: 1200000,
-      country: "Singapore",
-      industry: "Enterprise Software Consulting",
-      business_model: "White-label implementation and ongoing support services",
-      audience_size: "Direct access to 200+ enterprise decision makers",
-      active_marketing_channels: "Industry conferences, executive networking events, content marketing in Mandarin and English",
-      individual_type: "Managing Director",
-      entity_type: "company",
-      partner_roles: ["White Label Partner", "Implementation Specialist"],
-      social_profiles: "LinkedIn: @sarah-chen-asia, WeChat: SarahChenBiz",
-      communication_preference: "email"
-    },
-    {
-      id: "app-3",
-      name: "David Thompson", 
-      email: "david@techresellers.net",
-      company_name: "Tech Resellers Network",
-      partner_type: "reseller",
-      status: "reviewing",
-      experience_years: 3,
-      team_size: 4,
-      monthly_revenue: 75000,
-      target_market: "Startups and scale-ups in Europe",
-      marketing_channels: ["Social Media", "Webinars", "Trade Shows"],
-      partnership_goals: ["Revenue Growth", "Product Portfolio Expansion"],
-      created_at: "2024-01-25T09:15:00Z",
-      product_name: "AI-Powered Training Platform",
-      linkedin_url: "https://linkedin.com/in/david-thompson-tech",
-      // Full application data
-      phone: "+44-7700-900123",
-      website_url: "https://techresellers.net",
-      company_description: "Boutique technology reseller focused on AI and automation solutions for European startups and scale-ups.",
-      why_interested: "The AI training platform fills a crucial gap in our portfolio. Our clients are actively seeking AI-powered learning solutions.",
-      previous_partnerships: "Reseller agreements with 5 AI/ML companies, average deal size €15k, 85% client satisfaction rate.",
-      revenue_goals: 300000,
-      country: "United Kingdom",
-      industry: "AI & Machine Learning Solutions",
-      business_model: "Direct sales with implementation and training services",
-      audience_size: "~1,200 qualified prospects across UK, Germany, and Netherlands",
-      active_marketing_channels: "Tech meetups, LinkedIn thought leadership, partner webinars, startup accelerator relationships",
-      individual_type: "Founder & Sales Director",
-      entity_type: "company",
-      partner_roles: ["Reseller", "Solution Integrator"],
-      social_profiles: "LinkedIn: @david-thompson-tech, Twitter: @DTechSales",
-      communication_preference: "chat"
-    }
-  ];
 
-  // Mock data for white label resellers
-  const whiteLabelResellers = [
-    {
-      id: "wl-1",
-      name: "Sarah Chen",
-      company: "Asia Expansion Co",
-      email: "sarah@asiaexpansion.co",
-      phone: "+65-9123-4567",
-      stage: "whitelabeling",
-      demos_conducted: 12,
-      leads_generated: 45,
-      joined_date: "2024-01-20"
-    },
-    {
-      id: "wl-2", 
-      name: "Marcus Weber",
-      company: "EuroTech Solutions",
-      email: "marcus@eurotech.de",
-      phone: "+49-30-12345678",
-      stage: "contract",
-      demos_conducted: 0,
-      leads_generated: 8,
-      joined_date: "2024-02-01"
-    },
-    {
-      id: "wl-3",
-      name: "Jennifer Lopez",
-      company: "LatAm Digital",
-      email: "jennifer@latamdigital.com",
-      phone: "+52-55-1234-5678",
-      stage: "negotiations",
-      demos_conducted: 0,
-      leads_generated: 3,
-      joined_date: "2024-02-10"
-    },
-    {
-      id: "wl-4",
-      name: "Akira Tanaka", 
-      company: "Japan Software Partners",
-      email: "akira@jsoftware.jp",
-      phone: "+81-3-1234-5678",
-      stage: "first_demos",
-      demos_conducted: 3,
-      leads_generated: 15,
-      joined_date: "2024-01-25"
-    },
-    {
-      id: "wl-5",
-      name: "Robert Kim",
-      company: "Seoul Tech Hub",
-      email: "robert@seoultechhub.kr", 
-      phone: "+82-2-1234-5678",
-      stage: "sales",
-      demos_conducted: 28,
-      leads_generated: 87,
-      joined_date: "2023-11-15"
-    }
-  ];
+  // Get white label resellers from partner applications with white label role
+  const whiteLabelResellers = partnerApplications.filter(app => 
+    app.partner_roles?.includes('White Label Partner') || 
+    app.partner_roles?.includes('white_label')
+  ).map(app => ({
+    id: app.id,
+    name: app.name,
+    company: app.company_name || 'Individual',
+    email: app.email,
+    phone: app.phone || 'N/A',
+    stage: app.status === 'approved' ? 'whitelabeling' : app.status,
+    demos_conducted: 0, // This would come from actual tracking data
+    leads_generated: 0, // This would come from actual tracking data
+    joined_date: new Date(app.created_at).toISOString().split('T')[0]
+  }));
 
-  // Mock data for connected partners and their results
-  const connectedPartners = [
-    {
-      id: "partner-1",
-      name: "Michael Rodriguez",
-      company: "Growth Partners LLC",
-      type: "reseller",
-      joined_date: "2024-01-15",
-      registered_clients: 23,
-      closed_deals: 12,
-      total_revenue: 48000,
-      last_activity: "2 hours ago",
-      status: "active"
-    },
-    {
-      id: "partner-2",
-      name: "Jennifer Wilson",
-      company: "Sales Force Pro",
-      type: "reseller", 
-      joined_date: "2023-12-01",
-      registered_clients: 45,
-      closed_deals: 28,
-      total_revenue: 112000,
-      last_activity: "1 day ago",
-      status: "active"
-    },
-    {
-      id: "partner-3",
-      name: "Robert Kim",
-      company: "Digital Solutions Inc",
-      type: "affiliate",
-      joined_date: "2024-02-01",
-      registered_clients: 8,
-      closed_deals: 3,
-      total_revenue: 9600,
-      last_activity: "3 days ago", 
-      status: "active"
-    }
-  ];
 
-  // Mock data for chats
-  const activeChats = [
-    {
-      id: "thread-1",
-      product_title: "CloudCRM Pro",
-      partner_name: "John Partner",
-      partner_company: "Growth Partners LLC",
-      last_message: "Absolutely! Our reseller program offers 25% commission...",
-      last_message_time: "2 hours ago",
-      unread_count: 0,
-      partner_type: "reseller"
-    },
-    {
-      id: "thread-2",
-      product_title: "CloudCRM Pro",
-      partner_name: "Lisa Chen",
-      partner_company: "Asia Expansion Co",
-      last_message: "I'm interested in white-label opportunities for the Asian market.",
-      last_message_time: "1 day ago",
-      unread_count: 2,
-      partner_type: "white_label"
-    }
-  ];
+  // Get active chats - this would be fetched from partner_chats table
+  const activeChats: any[] = []; // Empty for now until chat system is implemented
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -391,6 +197,30 @@ const VendorDashboard = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please log in to access the vendor dashboard.</p>
+          <Link to="/login" className="text-primary hover:underline">Go to Login</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!vendor) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">No Vendor Profile Found</h2>
+          <p className="text-gray-600 mb-4">You don't have a vendor profile yet.</p>
+          <Link to="/onboard/vendor" className="text-primary hover:underline">Create Vendor Profile</Link>
+        </div>
       </div>
     );
   }
@@ -434,7 +264,7 @@ const VendorDashboard = () => {
                 <UserCheck className="w-8 h-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-green-700">Active Partners</p>
-                  <p className="text-2xl font-bold text-green-900">{connectedPartners.length}</p>
+                  <p className="text-2xl font-bold text-green-900">{connectedPartners.filter(p => p.status === 'approved').length}</p>
                 </div>
               </div>
             </CardContent>
@@ -459,7 +289,7 @@ const VendorDashboard = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-amber-700">Total Revenue</p>
                   <p className="text-2xl font-bold text-amber-900">
-                    ${connectedPartners.reduce((sum, p) => sum + p.total_revenue, 0).toLocaleString()}
+                    $0
                   </p>
                 </div>
               </div>
@@ -719,186 +549,7 @@ const VendorDashboard = () => {
 
           {/* Partner Applications Tab */}
           <TabsContent value="applications" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Partner Applications</h2>
-              <Badge variant="outline">{partnerApplications.length} applications</Badge>
-            </div>
-
-            <div className="space-y-4">
-              {partnerApplications.map((app) => (
-                <Card key={app.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{app.name}</CardTitle>
-                        <CardDescription className="flex items-center space-x-2 mt-1">
-                          <span>{app.company_name}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {app.partner_type.replace('_', ' ')}
-                          </Badge>
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <a 
-                          href={app.linkedin_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          LinkedIn
-                        </a>
-                        <Badge 
-                          variant={app.status === 'approved' ? 'default' : app.status === 'pending' ? 'secondary' : 'outline'}
-                          className={
-                            app.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
-                          }
-                        >
-                          {app.status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
-                          {app.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
-                          {app.status === 'reviewing' && <Eye className="w-3 h-3 mr-1" />}
-                          {app.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-500">Experience</p>
-                        <p className="font-medium">{app.experience_years} years</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Team Size</p>
-                        <p className="font-medium">{app.team_size} people</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Monthly Revenue</p>
-                        <p className="font-medium">${app.monthly_revenue.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Product</p>
-                        <p className="font-medium">{app.product_name}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <p className="text-sm"><span className="font-medium">Target Market:</span> {app.target_market}</p>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">Marketing Channels:</span>
-                        {app.marketing_channels.map((channel, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">{channel}</Badge>
-                        ))}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">Goals:</span>
-                        {app.partnership_goals.map((goal, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">{goal}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="flex space-x-2 mt-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => toggleApplicationExpansion(app.id)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        {expandedApplications.has(app.id) ? 'Hide Details' : 'View Details'}
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        Start Chat
-                      </Button>
-                    </div>
-
-                    {/* Expanded Application Details */}
-                    {expandedApplications.has(app.id) && (
-                      <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
-                        <h4 className="font-semibold text-gray-900 mb-4">Full Application Details</h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Contact Information</p>
-                              <div className="mt-1 text-sm text-gray-600">
-                                <p>Email: {app.email}</p>
-                                <p>Phone: {app.phone}</p>
-                                <p>Website: <a href={app.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{app.website_url}</a></p>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Company Details</p>
-                              <div className="mt-1 text-sm text-gray-600">
-                                <p>Industry: {app.industry}</p>
-                                <p>Country: {app.country}</p>
-                                <p>Business Model: {app.business_model}</p>
-                                <p>Entity Type: {app.entity_type}</p>
-                              </div>
-                            </div>
-
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Partner Profile</p>
-                              <div className="mt-1 text-sm text-gray-600">
-                                <p>Role: {app.individual_type}</p>
-                                <p>Communication: {app.communication_preference}</p>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  <span>Roles:</span>
-                                  {app.partner_roles.map((role, index) => (
-                                    <Badge key={index} variant="outline" className="text-xs">{role}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Business Metrics</p>
-                              <div className="mt-1 text-sm text-gray-600">
-                                <p>Revenue Goal: ${app.revenue_goals?.toLocaleString() || 'Not specified'}</p>
-                                <p>Audience Size: {app.audience_size}</p>
-                              </div>
-                            </div>
-
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Company Description</p>
-                              <p className="mt-1 text-sm text-gray-600">{app.company_description}</p>
-                            </div>
-
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Why Interested</p>
-                              <p className="mt-1 text-sm text-gray-600">{app.why_interested}</p>
-                            </div>
-
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">Previous Partnerships</p>
-                              <p className="mt-1 text-sm text-gray-600">{app.previous_partnerships}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Marketing Channels</p>
-                            <p className="mt-1 text-sm text-gray-600">{app.active_marketing_channels}</p>
-                          </div>
-
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Social Profiles</p>
-                            <p className="mt-1 text-sm text-gray-600">{app.social_profiles}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <PartnerApplications vendorId={vendor?.id || ''} />
           </TabsContent>
 
           {/* White Label Resellers Tab */}
